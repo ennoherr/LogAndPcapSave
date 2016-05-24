@@ -59,9 +59,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LogVsPcapTracer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DbgView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -92,9 +89,12 @@
     <ClCompile Include="HddMgmt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LogAndPcapSave.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="LogVsPcapTracer.rc">
+    <ResourceCompile Include="LogAndPcapSave.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
