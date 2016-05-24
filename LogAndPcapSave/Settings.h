@@ -2,8 +2,6 @@
 
 #include <string>
 
-using namespace std;
-
 class CSettings
 {
 public:
@@ -12,26 +10,25 @@ public:
 
 	int ProcessCmdLineArgs(TCHAR** szArglist, int iArgs);
 
-
-	wstring GetVersion(void);
-	wstring GetFilename(void);
-	wstring GetFind(void);
-	wstring GetLogInterval(void);
-	int GetNic(void);
+	std::string GetVersion(void);
+	std::string GetFilename(void);
+	std::string GetFind(void);
+	std::string GetLogInterval(void);
+	std::vector<std::string> GetProcRunningList(void);
+	int GetNicToUse(void);
+	int GetNicCount(void);
 	int GetPcapMax(void);
-	bool GetListNics(void);
 
 private:
-	wstring version;
-	wstring fname;
-	wstring find;
-	wstring logfile_interval;
+	std::string find;
+	std::string logfileInterval;
+	std::string fname;
+	std::string version;
 
-	int nic;
-	int pcapmax;
+	int nicToUse;
+	int nicCount;
+	int pcapMaxSize;
 
-	bool list_nics;
-
-	
+	void PrintNicList(void);
 };
 

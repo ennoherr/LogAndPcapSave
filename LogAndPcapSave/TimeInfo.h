@@ -2,8 +2,6 @@
 
 #include <string>
 
-using namespace std;
-
 class CTimeInfo
 {
 public:
@@ -13,8 +11,8 @@ public:
 	unsigned long GetTimestamp(void);
 	long long GetTimestampMs(void);
 	
-	wstring GetTimeReadable(wstring DateTimeSep = L";", wstring TimeSep = L":");
-	wstring GetTimeReadableMs(wstring DateTimeSep = L";", wstring TimeSep = L":", wstring MSecSep = L".");
+	std::string GetTimeReadable(std::string DateTimeSep = ";", std::string TimeSep = ":");
+	std::string GetTimeReadableMs(std::string DateTimeSep = ";", std::string TimeSep = ":", std::string MSecSep = ".");
 
 	bool IsNewDay(void);
 	bool IsNewHour(void);

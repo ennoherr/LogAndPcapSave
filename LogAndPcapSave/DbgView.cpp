@@ -38,28 +38,24 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Default constructor. </summary>
 ///
-/// <remarks>	Enno Herr, 28.05.2015. </remarks>
+/// <remarks>	Enno Herr, 24.05.2016. </remarks>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CDbgView::CDbgView(queue<DBG_DATA> *qData, mutex *mtxData, CTimeInfo *pTI, CUnicodeConv *pUC)
+CDbgView::CDbgView(queue<DBG_DATA> *qData, mutex *mtxData)
 	: m_thWorker()
 	, m_bThreadRunning(false)
 	, m_qData(NULL)
 	, m_mtxData(NULL)
 	, m_hReadyEvent(NULL)
-	, m_pTI(NULL)
-	, m_pUC(NULL)
 {
 	m_qData = qData;
 	m_mtxData = mtxData;
-	m_pTI = pTI;
-	m_pUC = pUC;
 }	  
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Destructor. </summary>
 ///
-/// <remarks>	Enno Herr, 28.05.2015. </remarks>
+/// <remarks>	Enno Herr, 24.05.2016. </remarks>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CDbgView::~CDbgView(void)
@@ -69,7 +65,7 @@ CDbgView::~CDbgView(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Start thread. </summary>
 ///
-/// <remarks>	Enno Herr, 28.05.2015. </remarks>
+/// <remarks>	Enno Herr, 24.05.2016. </remarks>
 ///
 /// <returns>	0 on success, else error. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +99,7 @@ int CDbgView::Start(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Stop thread. </summary>
 ///
-/// <remarks>	Enno Herr, 28.05.2015. </remarks>
+/// <remarks>	Enno Herr, 24.05.2016. </remarks>
 ///
 /// <returns>	0 on success, else error. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +132,7 @@ int CDbgView::Stop(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	The main part of this routine comes from the MSDN DBMON example. </summary>
 ///
-/// <remarks>	Enno Herr, 28.05.2015. </remarks>
+/// <remarks>	Enno Herr, 24.05.2016. </remarks>
 ///
 /// <param name="pParam">	params passed to the thread as void*. </param>
 ///
@@ -159,6 +155,8 @@ void CDbgView::EventThreadRoutine(void)
 	DBG_BUFFER* pDB = NULL;
 	SECURITY_ATTRIBUTES sa = { 0 };
 	SECURITY_DESCRIPTOR sd = { 0 };
+
+	CTimeInfo TI;
 
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.bInheritHandle = TRUE;
@@ -220,13 +218,13 @@ void CDbgView::EventThreadRoutine(void)
 					//printf("%d, %s", pDB->dwPid, pDB->abData);
 
 					DBG_DATA dd;
-					dd.time = m_pTI->GetTimeReadableMs();
-					dd.timestamp_ms = m_pTI->GetTimestampMs();
+					dd.time = TI.GetTimeReadableMs();
+					dd.timestamp_ms = TI.GetTimestampMs();
 					dd.pid = pDB->dwPid;
 					temp = reinterpret_cast<const char*>(pDB->abData);
 					// some strings are too long causing an std::range_error exception when converting to wstring
 					if (temp.length() > 1024) temp = temp.substr(0, 1024);
-					dd.msg = RemoveCRLF(m_pUC->s2ws(temp));
+					dd.msg = RemoveCRLF(temp);
 
 					m_mtxData->lock();
 					m_qData->push(dd);
@@ -258,6 +256,7 @@ void CDbgView::EventThreadRoutine(void)
 		{
 			dbgtprintf(_T("CDbgView::EventThreadRoutine ERROR: An error occured, iRet = %d, ErrorCode = %d"), iRet, GetLastError());
 			
+			// wait 10 sec
 			Sleep(10*1000);
 			iRet = 0;
 		}
@@ -274,14 +273,14 @@ void CDbgView::EventThreadRoutine(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Remove CR and LF from string. </summary>
 ///
-/// <remarks>	Enno Herr, 10.06.2015. </remarks>
+/// <remarks>	Enno Herr, 24.05.2016 </remarks>
 ///
 /// <param name="str">	string. </param>
 ///
 /// <returns>	string without CR and LF. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-wstring CDbgView::RemoveCRLF(wstring str)
+string CDbgView::RemoveCRLF(string str)
 {
 	str.erase(remove(str.begin(), str.end(), '\r'), str.end());
 	str.erase(remove(str.begin(), str.end(), '\n'), str.end());

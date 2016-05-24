@@ -20,19 +20,14 @@
 #include "NetCapture.h"
 
 
-CNetCapture::CNetCapture(CTimeInfo *pTI, CUnicodeConv *pUC)
+CNetCapture::CNetCapture(void)
 	: m_pInterfaces(NULL)
 	, m_pSelectedIf(NULL)
 	, m_uiNumOfDevices(0)
 	, m_thWorker()
 	, m_bThreadRunning(false)
 	, m_bSafeDump(false)
-	, m_pTI(NULL)
-	, m_pUC(NULL)
 {
-	m_pTI = pTI;
-	m_pUC = pUC;
-
 	InitInterfaces();
 }
 
@@ -102,7 +97,7 @@ int CNetCapture::Cleanup(void)
 	return iRet;
 }
 
-int CNetCapture::StartCaptureThread(const unsigned Interface, wstring fname, long long fMaxSizeMbyte)
+int CNetCapture::StartCaptureThread(const unsigned Interface, std::string fname, long long fMaxSizeMbyte)
 {
 	if (m_bThreadRunning)
 	{
@@ -152,21 +147,42 @@ int CNetCapture::StopCaptureThread(void)
 }
 
 
-int CNetCapture::GetInterfaces(vector<string> &vAdapters)
+int CNetCapture::GetInterfacesCount(void)
 {
+	if (m_pInterfaces == NULL)
+	{
+		return -1;
+	}
+
 	int iRet = 0;
 	pcap_if_t *pIf = NULL;
-
-	if (iRet == 0 && m_pInterfaces == NULL)
-	{
-		iRet = InitInterfaces();
-	}
 
 	if (iRet == 0)
 	{
 		for (pIf = m_pInterfaces; pIf != NULL; pIf = pIf->next)
 		{
-			vAdapters.push_back(pIf->description);
+			++iRet;
+		}
+	}
+
+	return iRet;
+}
+
+int CNetCapture::GetInterfaces(vector<string> &adapters)
+{
+	if (m_pInterfaces == NULL)
+	{
+		return -1;
+	}
+
+	int iRet = 0;
+	pcap_if_t *pIf = NULL;
+
+	if (iRet == 0)
+	{
+		for (pIf = m_pInterfaces; pIf != NULL; pIf = pIf->next)
+		{
+			adapters.push_back(pIf->description);
 
 			//printf("%d. %s\n    ", ++i, pIf->name);
 			//if (pIf->description)
@@ -209,7 +225,7 @@ int CNetCapture::SetInterface(const unsigned Interface)
 	return iRet;
 }
 
-int CNetCapture::WriteDump(wstring fname, long long fMaxSizeMbyte)
+int CNetCapture::WriteDump(std::string fname, long long fMaxSizeMbyte)
 {
 	// startup delay
 	for (int i = 0; i < 32; i++)
@@ -221,7 +237,8 @@ int CNetCapture::WriteDump(wstring fname, long long fMaxSizeMbyte)
 	int iRet = 0;
 	int iWrite = 0;
 	long long llFSize = 0;
-	wstring DumpFile = L"";
+	std::string DumpFile = "";
+	CTimeInfo TI;
 
 	pcap_dumper_t *pDumpfile = NULL;
 	struct pcap_pkthdr *pHeader = NULL;
@@ -241,13 +258,9 @@ int CNetCapture::WriteDump(wstring fname, long long fMaxSizeMbyte)
 	while (iRet == 0 && m_bThreadRunning)
 	{	
 		//DumpFile = fname + L"_" + to_wstring(TI.GetTimestampMs()) + L"_" + TI.GetTimeReadableMs(L"_", L"-", L"-") + L".pcap";
-		DumpFile = fname + L"_" + m_pTI->GetTimeReadableMs(L"_", L"-", L"-") + L".pcap";
+		DumpFile = fname + "_" + TI.GetTimeReadableMs("_", "-", "-") + ".pcap";
 	
-		// note: pcap does not support unicode - 15-06-08
-		char ch[512] = "\0";
-		m_pUC->WCharToChar(DumpFile.c_str(), ch, 512);
-		//if (iRet == 0 && (pDumpfile = pcap_dump_open(m_pSelectedIf, UC.ws2s(DumpFile).c_str())) == NULL)
-		if (iRet == 0 && (pDumpfile = pcap_dump_open(m_pSelectedIf, ch)) == NULL)
+		if (iRet == 0 && (pDumpfile = pcap_dump_open(m_pSelectedIf, DumpFile.c_str())) == NULL)
 		{
 			dbgtprintf(_T("CNetCapture::WriteDump ERROR: pcap_dump_open(...) returned null."));
 			iRet = 2;
@@ -271,7 +284,7 @@ int CNetCapture::WriteDump(wstring fname, long long fMaxSizeMbyte)
 				llFSize = GetFilesize(DumpFile) / (1024 * 1024);
 				if (llFSize >= fMaxSizeMbyte)
 				{
-					dbgprintf("CNetCapture::WriteDump STATUS: pcap file size limit reached. filename = %s, current size = %lld MB, max size = %lld MB", ch, llFSize, fMaxSizeMbyte);
+					dbgprintf("CNetCapture::WriteDump STATUS: pcap file size limit reached. filename = %s, current size = %lld MB, max size = %lld MB", DumpFile.c_str(), llFSize, fMaxSizeMbyte);
 					break;
 				}
 			} // end while - pcap_next_ex
@@ -298,9 +311,9 @@ int CNetCapture::WriteDump(wstring fname, long long fMaxSizeMbyte)
 	return iRet;
 }
 
-long long CNetCapture::GetFilesize(wstring fname)
+long long CNetCapture::GetFilesize(std::string fname)
 {
-	wifstream in(fname, ifstream::ate | ifstream::binary);
+	std::ifstream in(fname, std::ifstream::ate | std::ifstream::binary);
     return (long long)in.tellg(); 
 }
 
@@ -309,7 +322,7 @@ void CNetCapture::SafeCurrentDump(void)
 	m_bSafeDump = true;
 }
 
-int CNetCapture::SafeOrDeleteDump(wstring fname, wstring safe_prefix, wstring safe_postfix)
+int CNetCapture::SafeOrDeleteDump(std::string fname, std::string safe_prefix, std::string safe_postfix)
 {
 	int iRet = 0;
 
@@ -319,10 +332,10 @@ int CNetCapture::SafeOrDeleteDump(wstring fname, wstring safe_prefix, wstring sa
 
 		if (safe_prefix.length() > 0 || safe_postfix.length() > 0)
 		{
-			wstring SafeFile = safe_prefix + fname + safe_postfix;
+			std::string SafeFile = safe_prefix + fname + safe_postfix;
 			if (fname != SafeFile)
 			{
-				if ((iRet = _wrename(fname.c_str(), SafeFile.c_str())) != 0)
+				if ((iRet = rename(fname.c_str(), SafeFile.c_str())) != 0)
 				{
 					dbgwprintf(L"CNetCapture::SafeOrDeleteDump WARNING: pcap file \'%s\' could not be renamed!", fname.c_str());
 				}
@@ -334,7 +347,7 @@ int CNetCapture::SafeOrDeleteDump(wstring fname, wstring safe_prefix, wstring sa
 	else
 	{
 		dbgwprintf(L"CNetCapture::SafeOrDeleteDump STATUS: pcap file \'%s\' will be deleted.", fname.c_str());
-		if ((iRet = _wremove(fname.c_str())) != 0)
+		if ((iRet = remove(fname.c_str())) != 0)
 		{
 			iRet = 2;
 			dbgwprintf(L"CNetCapture::SafeOrDeleteDump WARNING: pcap file \'%s\' could not be deleted!", fname.c_str());

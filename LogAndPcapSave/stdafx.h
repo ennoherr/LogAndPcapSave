@@ -18,16 +18,16 @@
 struct DBG_DATA
 {
 	long long timestamp_ms;
-	std::wstring time;
+	std::string time;
 	
 	DWORD pid;
-	std::wstring msg;
+	std::string msg;
 	
 	DBG_DATA()
 		: timestamp_ms(0)
-		, time(L"")
+		, time("")
 		, pid(0)
-		, msg(L"")
+		, msg("")
 	{
 	}
 	~DBG_DATA()

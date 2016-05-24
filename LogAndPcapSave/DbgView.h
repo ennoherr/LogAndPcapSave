@@ -28,16 +28,13 @@ struct DBG_BUFFER
 class CDbgView
 {
 public:
-	CDbgView(queue<DBG_DATA> *qData, mutex *mtxData, CTimeInfo *pTI, CUnicodeConv *pUC);
+	CDbgView(queue<DBG_DATA> *qData, mutex *mtxData);
 	~CDbgView(void);
 
 	int Start(void);
 	int Stop(void);
 
 private:
-	CTimeInfo *m_pTI;
-	CUnicodeConv *m_pUC;
-
 	queue<DBG_DATA> *m_qData;
 	thread m_thWorker;
 	mutex *m_mtxData;
@@ -46,6 +43,6 @@ private:
 	HANDLE m_hReadyEvent;
 
 	void EventThreadRoutine(void);
-	wstring RemoveCRLF(wstring str);
+	string RemoveCRLF(string str);
 };
 

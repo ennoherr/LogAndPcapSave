@@ -1,9 +1,11 @@
 #include "stdafx.h"
 
 #include <string>
+#include <iostream>
 
 #include "dbgprint.h"
 #include "UnicodeConv.h"
+#include "NetCapture.h"
 
 #include "Settings.h"
 
@@ -11,13 +13,13 @@ using namespace std;
 
 
 CSettings::CSettings(void)
-	: version(L"0.8.4.0 - Build 2015-06-11")
-	, fname(L"out")
-	, find(L"")
-	, logfile_interval(L"day")
-	, nic(1)
-	, pcapmax(100)
-	, list_nics(false)
+	: version("1.0.0.0 - Build 2016-05-24")
+	, fname("out")
+	, find("")
+	, logfileInterval("day")
+	, nicToUse(1)
+	, nicCount(1)
+	, pcapMaxSize(100)
 {
 }
 
@@ -45,41 +47,44 @@ int CSettings::ProcessCmdLineArgs(TCHAR** szArglist, int iArgs)
 	{
 		if (_tcsicmp(szArglist[i], _T("-l")) == 0) // list interfaces
 		{
-			list_nics = true;
+			PrintNicList();
+			
+			// we can exit the loop here
+			break;
 		}
 		if (_tcsicmp(szArglist[i], _T("-i") ) == 0 ) // use interface number
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				nic = _ttoi(szArglist[i]);
+				nicToUse = _ttoi(szArglist[i]);
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-o")) == 0) // output filename
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				fname = UC.ts2ws(szArglist[i]);
+				fname = UC.ts2s(szArglist[i]);
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-oi")) == 0) // new log interval
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				logfile_interval = UC.ts2ws(szArglist[i]);
+				logfileInterval = UC.ts2s(szArglist[i]);
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-f")) == 0) // string to find
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				find = UC.ts2ws(szArglist[i]);
+				find = UC.ts2s(szArglist[i]);
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-pcapmax")) == 0) // string to find
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				pcapmax = _ttoi(szArglist[i]);
+				pcapMaxSize = _ttoi(szArglist[i]);
 			}
 		}
 		
@@ -91,63 +96,82 @@ int CSettings::ProcessCmdLineArgs(TCHAR** szArglist, int iArgs)
 			_tcsicmp(szArglist[i], _T("/h")) == 0
 			) // display help message
 		{
-			TCHAR szUsage[2048];
+			cout << "Usage: " << endl;
+			cout << "-l :: List all NICs" << endl;
+			cout << "-i <num> :: number of NIC to be captured, default = 1" << endl;
+			cout << "-o <string> :: prefix for output files, default = out" << endl;
+			cout << "-oi <string> :: interval for log file, values = none, hour, day, default = day" << endl;
+			cout << "-f <string> :: string to search (if empty only debug output to file, dump will be deleted), default = \"\"" << endl;
+			cout << "-pcapmax <int> :: max size of pcap file [in MB], default = 100" << endl;
+			cout << endl;
 
-			_tcscpy_s(szUsage, _T("\n--- Help: ---\n"));
-			_tcscat_s(szUsage, _T("-l :: List all NICs\n"));
-			_tcscat_s(szUsage, _T("-i <num> :: number of NIC to be captured, default = 1\n"));
-			_tcscat_s(szUsage, _T("-o <string> :: prefix for output files, default = out\n"));
-			_tcscat_s(szUsage, _T("-oi <string> :: interval for log file, values = none, hour, day, default = day\n"));
-			_tcscat_s(szUsage, _T("-f <string> :: string to search (if empty only debug output to file, dump will be deleted), default = \"\"\n"));
-			_tcscat_s(szUsage, _T("-pcapmax <int> :: max size of pcap file [in MB], default = 100\n"));
-			_tcscat_s(szUsage, _T("\n"));
-
-			_tcscat_s(szUsage, _T("Usage example: LogVsPcapTracer -f error \n"));
-			_tcscat_s(szUsage, _T("\n"));
+			cout << "Usage example: LogVsPcapTracer -f error" << endl;
+			cout << endl;
 			
-			//MessageBox(NULL, szUsage, _T("Usage..."), MB_OK);
-			_tprintf(szUsage);
-
-			// if we reached this then we can exit the application gracefully
-			exit(0);
+			// we can exit the loop here
+			break;
 		}
 
-	} // end - while
+	} // end - for loop
 
 	return 0;
 }
 
-wstring CSettings::GetVersion(void)
+string CSettings::GetVersion(void)
 {
 	return version;
 }
 
-wstring CSettings::GetFilename(void)
+string CSettings::GetFilename(void)
 {
 	return fname;
 }
 
-wstring CSettings::GetFind(void)
+string CSettings::GetFind(void)
 {
 	return find;
 }
 
-wstring CSettings::GetLogInterval(void)
+string CSettings::GetLogInterval(void)
 {
-	return logfile_interval;
+	return logfileInterval;
 }
 
-int CSettings::GetNic(void)
+std::vector<std::string> CSettings::GetProcRunningList(void)
 {
-	return nic;
+	// todo: find a better way than hardcode it
+	std::vector<std::string> proc;
+	proc.push_back("DbgView.exe");
+
+	return proc;
 }
 
-bool CSettings::GetListNics(void)
+int CSettings::GetNicToUse(void)
 {
-	return list_nics;
+	return nicToUse;
+}
+
+int CSettings::GetNicCount(void)
+{
+	CNetCapture NC;
+	return NC.GetInterfacesCount();
+}
+
+
+void CSettings::PrintNicList(void)
+{
+	std::vector<std::string> adapters;
+	CNetCapture NC;
+	NC.GetInterfaces(adapters);
+	
+	for (unsigned i = 0; i < adapters.size(); i++)
+	{
+		cout << to_string(i + 1) << " - " << adapters.at(i) << endl;
+	}
 }
 
 int CSettings::GetPcapMax(void)
 {
-	return pcapmax;
+	return pcapMaxSize;
 }
+

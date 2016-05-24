@@ -19,35 +19,23 @@
 
 #include "Files.h"
 
-using namespace std;
+//using namespace std;
 
 #define SAFE_DELETE(p) {if (p) {delete p; p = NULL;}}
 
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	bool bExit = false;
-
-	int iInterface = 0;
-	int iPcapMax = 0;
-	wstring line = L"";
-	wstring fname = L"";
-	wstring find = L"";
-	wstring log_interval = L"";
-	wstring processes[] = { L"DbgView.exe" };
-
+	bool exit = false;
+	std::string line = "";
 	queue<DBG_DATA> qData;
-	vector<string> vAdapters;
 	mutex mtxData;
 
-	CTimeInfo *pTI = new CTimeInfo();
-	CUnicodeConv *pUC = new CUnicodeConv();
-	
-	CDbgView *pDV = new CDbgView(&qData, &mtxData, pTI, pUC);
-	CFiles *pFAllData = new CFiles(pTI);
-	CFiles *pFFilter = new CFiles(pTI);
+	CDbgView *pDV = new CDbgView(&qData, &mtxData);
+	CFiles *pFAllData = new CFiles();
+	CFiles *pFFilter = new CFiles();
 	CSearch *pS = new CSearch();
-	CNetCapture *pNC = new CNetCapture(pTI, pUC);
+	CNetCapture *pNC = new CNetCapture();
 	CSettings *pSet = new CSettings();
 	CProcess *pProc = new CProcess();
 	CHddMgmt *pHM = new CHddMgmt();
@@ -55,71 +43,64 @@ int _tmain(int argc, _TCHAR* argv[])
 	// read cmd line args 
 	pSet->ProcessCmdLineArgs(argv, argc);
 
-	iInterface = pSet->GetNic();
-	iPcapMax = pSet->GetPcapMax();
-	fname = pSet->GetFilename();
-	find = pSet->GetFind();
-	log_interval = pSet->GetLogInterval();
-
-	wcout << L"LogVsPcapTracer started... (Press Enter to quit)" << endl;
-	wcout << L"Version: " << pSet->GetVersion() << endl;
-	wcout << L"---------------------------------------" << endl;
+	cout << "LogVsPcapTracer started... (Press Enter 'q' to quit)" << endl;
+	cout << "Version: " << pSet->GetVersion() << endl;
+	cout << "---------------------------------------" << endl;
 
 	// select nic or use the one selected
 	// check if another process is using and blocking DBGWIN_BUFFER
-	if (pSet->GetListNics())
+	if (!exit && pSet->GetNicCount() > 1)
 	{
-		pNC->GetInterfaces(vAdapters);
-		for (unsigned i = 0; i < vAdapters.size(); i++)
-		{
-			cout << to_string(i+1) << " - " << vAdapters.at(i) << endl;
-		}
-		bExit = true;
+		std::cout << "Error: More than one NIC available. Use option -l and select the NIC to listen on" << endl;
+		exit = true;
 	}
-	else
+
+	// close running processes
+	if (!exit)
 	{
-		for each (wstring p in processes)
+		for each (string p in pSet->GetProcRunningList())
 		{
 			if (pProc->IsProcessRunning(p))
 			{
-				wcout << L"Process \"" + p + L"\" running. Close it and try again." << endl;
-				bExit = true;
+				cout << "Error: Process \"" + p + "\" running. Close it and try again." << endl;
+				exit = true;
 			}
-		}
-
-		if (iInterface > 0 && !bExit)
-		{
-			pNC->StartCaptureThread(iInterface, fname, iPcapMax);	
-			pDV->Start();
-
-			wcout << L"Only output from filter will be shown." << endl;
-			wcout << L"Filter input: \"" << find << L"\"" << endl;
-			wcout << L"---------------------------------------" << endl;
-		}
-		else
-		{
-			bExit = true;
 		}
 	}
 
+	// start threads
+	if (!exit && pSet->GetNicToUse() > 0)
+	{
+		pNC->StartCaptureThread(pSet->GetNicToUse(), pSet->GetFilename(), pSet->GetPcapMax());	
+		pDV->Start();
+
+		cout << "Only output from filter will be shown." << endl;
+		cout << "Filter input: \"" << pSet->GetFind() << "\"" << endl;
+		cout << "---------------------------------------" << endl;
+	}
+	else
+	{
+		exit = true;
+	}
+
 	// main loop
-	while (!bExit)
+	while (!exit)
 	{
 		mtxData.lock();
 		if (qData.size() > 0)
 		{
 			DBG_DATA dd = qData.front();
 			qData.pop();
-			line = to_wstring(dd.timestamp_ms) + L";" + dd.time + L";" + to_wstring(dd.pid) + L";" + dd.msg;
+			line = to_string(dd.timestamp_ms) + ";" + dd.time + ";" + to_string(dd.pid) + ";" + dd.msg;
 
 			//wcout << line << endl;
-			pFAllData->WriteToFile(fname + L"_all", line, log_interval);
+			pFAllData->WriteToFile(pSet->GetFilename() + "_all", line, pSet->GetLogInterval());
 
-			if (pS->IsInString(line, find))
+			if (pS->IsInString(line, pSet->GetFind()))
 			{
 				wcout << line << endl;
 
-				pFFilter->WriteToFile(fname + L"_filter", line, log_interval);
+				pFFilter->WriteToFile(pSet->GetFilename() + "_filter", line, pSet->GetLogInterval());
 				pNC->SafeCurrentDump();
 			}
 		}
@@ -130,18 +111,18 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			__int64 spaceMB = pHM->GetFreeBytesAvailable() / (1024 * 1024);
 
-			if (spaceMB < (iPcapMax * 1.5))
+			if (spaceMB < (pSet->GetPcapMax() * 1.5))
 			{
 				wcout << L"free disk space [MB]: " << to_wstring(spaceMB) << endl;
 				wcout << L"Not enough space to write files. Exit program..." << endl;
-				bExit = true;
+				exit = true;
 			}
 		}
 		
 		// hit enter and exit
 		while (_kbhit())
 		{
-			if (_gettch_nolock() == 13) bExit = true;
+			if (_gettch_nolock() == 'q') exit = true;
 		}
 
 		Sleep(1);
@@ -160,9 +141,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	SAFE_DELETE(pFAllData);
 	SAFE_DELETE(pDV);
 	SAFE_DELETE(pSet);
-
-	SAFE_DELETE(pTI);
-	SAFE_DELETE(pUC);
 
 	return 0;
 }
