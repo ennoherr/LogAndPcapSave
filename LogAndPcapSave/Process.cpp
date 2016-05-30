@@ -4,49 +4,32 @@
 #include <cstdio>
 
 #ifdef _WIN32
+#include "UniConvert.h"
+
 #include <windows.h>
 #include <tlhelp32.h>
 #else
-// todo - includes for posix implementation - 15-06-08
+// todo - includes for posix implementation - 16-05-30
 #endif
 
 #include "Process.h"
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// <summary>	Default constructor. </summary>
-///
-/// <remarks>	Enno Herr, 10.06.2015. </remarks>
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-CProcess::CProcess(void)
+processes::processes(void)
 {
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// <summary>	Destructor. </summary>
-///
-/// <remarks>	Enno Herr, 10.06.2015. </remarks>
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-CProcess::~CProcess(void)
+processes::~processes(void)
 {
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// <summary>	Check if a process is running. </summary>
-///
-/// <remarks>	Enno Herr, 10.06.2015. </remarks>
-///
-/// <param name="processName">	Name of the process. </param>
-///
-/// <returns>	true if process running, false if not. </returns>
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool CProcess::IsProcessRunning(const wstring processName)
+bool processes::isProcessRunning(const std::string processName)
 {
 	bool exists = false;
 
 #ifdef _WIN32
+	UniConvert uc;
+	tstring procToCheck = uc.s2ts(processName);
+
 	PROCESSENTRY32 entry = { 0 };
 	entry.dwSize = sizeof(PROCESSENTRY32);
 
@@ -56,7 +39,7 @@ bool CProcess::IsProcessRunning(const wstring processName)
 	{
 		while (Process32Next(snapshot, &entry))
 		{
-			if (!_wcsicmp(entry.szExeFile, processName.c_str()))
+			if (!_tcsicmp(entry.szExeFile, procToCheck.c_str()))
 			{
 				exists = true;
 			}
@@ -66,9 +49,10 @@ bool CProcess::IsProcessRunning(const wstring processName)
 	CloseHandle(snapshot);
 
 #else
-	// todo - posix implementation - 15-06-08
+	// todo - posix implementation - 16-05-30
 
 #endif
 
 	return exists;
 }
+

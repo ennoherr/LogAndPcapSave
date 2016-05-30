@@ -4,59 +4,59 @@
 #include <string>
 #include <fstream>
 
+#include "UniConvert.h"
 #include "dbgprint.h"
-#include "UnicodeConv.h"
 #include "TimeInfo.h"
 
 #include "Files.h"
 
 using namespace std;
 
-CFiles::CFiles(CTimeInfo *pTI)
-	: m_pTI(NULL)
-	, m_Logfile(L"")
+FileMgmt::FileMgmt(TimeInfo *tiInOut)
+	: ti(NULL)
 {
-	if (pTI) m_pTI = pTI;
+	ti = tiInOut;
 }
 
 
-CFiles::~CFiles(void)
+FileMgmt::~FileMgmt(void)
 {
 }
 
-int CFiles::WriteToFile(wstring fname, wstring line, wstring interval, bool bAppend)
+int FileMgmt::writeToFile(std::string fname, std::string line, std::string interval, bool append)
 {
-	if (fname.length() == 0 || line.length() == 0)
+	if (ti == NULL || fname.length() == 0 || line.length() == 0)
 	{
 		return -1;
 	}
 
-	int iRet = 0;
-	bool bNewFile = false;
+	int res = 0;
+	std::string logfile = "";
+	bool newFile = false;
+
 	transform(interval.begin(), interval.end(), interval.begin(), ::toupper);
 
-	if (interval == L"NONE")
+	if (interval == "NONE")
 	{
-		bNewFile = false;
+		newFile = false;
 	}
-	if (interval == L"HOUR")
+	if (interval == "HOUR")
 	{
-		bNewFile = m_pTI->IsNewHour();
+		newFile = ti->isNewHour();
 	}
-	if (interval == L"DAY")
+	if (interval == "DAY")
 	{
-		bNewFile = m_pTI->IsNewDay();
+		newFile = ti->isNewDay();
 	}
 	
 	// necessary to create a new file
-	if (m_Logfile.length() == 0 || bNewFile)
+	if (newFile)
 	{
-		//m_Logfile = fname + L"_" + to_wstring(m_pTI->GetTimestampMs()) + L"_" + m_pTI->GetTimeReadableMs(L"_", L"-", L"-") + L".log";
-		m_Logfile = fname + L"_" + m_pTI->GetTimeReadableMs(L"_", L"-", L"-") + L".log";
+		logfile = fname + "_" + ti->getTimeReadableMs("_", "-", "-") + ".log";
 	}
 	
-	ios_base::openmode om = (bAppend) ? (ios_base::out | ios_base::app) : (ios_base::out);
-	wofstream ofs(m_Logfile, om);
+	ios_base::openmode om = (append) ? (ios_base::out | ios_base::app) : (ios_base::out);
+	ofstream ofs(logfile, om);
 
 	if (ofs.is_open())
 	{
@@ -65,10 +65,10 @@ int CFiles::WriteToFile(wstring fname, wstring line, wstring interval, bool bApp
 	}
 	else
 	{
-		CUnicodeConv UC;
-		dbgtprintf(_T("CFiles::WriteToFile ERROR: Unable to open file \'%s\'"), UC.ws2ts(fname).c_str());
-		iRet = 1;
+		UniConvert uc;
+		dbgtprintf(_T("CFiles::WriteToFile ERROR: Unable to open file \'%s\'"), uc.s2ts(fname).c_str());
+		res = 1;
 	}
 
-	return iRet;
+	return res;
 }

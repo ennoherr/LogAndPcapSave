@@ -11,38 +11,38 @@
 #include <pcap.h>
 
 #include "TimeInfo.h"
-#include "UnicodeConv.h"
+#include "UniConvert.h"
 
 
-class CNetCapture
+class NetCapture
 {
 public:
-	CNetCapture(void);
-	~CNetCapture(void);
+	NetCapture(void);
+	~NetCapture(void);
 
-	int StartCaptureThread(const unsigned Interface, std::string fname, long long fMaxSizeMbyte);
-	int StopCaptureThread(void);
+	int startCaptureThread(const unsigned Interface, std::string fname, long long fMaxSizeMbyte);
+	int stopCaptureThread(void);
 
-	int GetInterfacesCount(void);
-	int GetInterfaces(vector<std::string> &adapters);
-	int SetInterface(const unsigned Interface);
+	int getInterfacesCount(void);
+	int getInterfaces(std::vector<std::string> &adapters);
+	int setInterface(const unsigned Interface);
 
-	int WriteDump(std::string fname, long long fMaxSizeMbyte);
-	void SafeCurrentDump(void);
+	int writeDump(std::string fname, long long fMaxSizeMbyte);
+	void safeCurrentDump(void);
 
 private:
-	pcap_if_t *m_pInterfaces;
-	pcap_t *m_pSelectedIf;
-	unsigned int m_uiNumOfDevices;
+	pcap_if_t *interfaces;
+	pcap_t *selectedIf;
+	unsigned int numOfIf;
 
-	thread m_thWorker;
-	atomic<bool> m_bThreadRunning;
-	atomic<bool> m_bSafeDump;
+	std::thread worker;
+	std::atomic<bool> isThreadRunning;
+	std::atomic<bool> isSafeDump;
 	
-	int InitInterfaces(void);
-	int Cleanup(void);
+	int initInterfaces(void);
+	int cleanup(void);
 
-	long long GetFilesize(std::string fname);
-	int SafeOrDeleteDump(std::string fname, std::string safe_prefix = "", std::string safe_postfix = "");
+	long long getFilesize(std::string fname);
+	int saveOrDeleteDump(std::string fname, std::string safe_prefix = "", std::string safe_postfix = "");
 };
 

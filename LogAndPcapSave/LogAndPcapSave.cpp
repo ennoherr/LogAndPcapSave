@@ -10,138 +10,213 @@
 #include <mutex>
 
 #include "Settings.h"
+#include "LogData.h"
 #include "DbgView.h"
 #include "Search.h"
 #include "NetCapture.h"
 #include "Process.h"
-#include "UnicodeConv.h"
 #include "HddMgmt.h"
 
 #include "Files.h"
 
-//using namespace std;
-
 #define SAFE_DELETE(p) {if (p) {delete p; p = NULL;}}
 
+// global
+settings set;
+NetCapture *netCap = NULL;
+DbgView *logCap = NULL;
 
-int _tmain(int argc, _TCHAR* argv[])
+
+int loadConfig(int argc, TCHAR** argv)
 {
-	bool exit = false;
-	std::string line = "";
-	queue<DBG_DATA> qData;
-	mutex mtxData;
+	int res = 0;
 
-	CDbgView *pDV = new CDbgView(&qData, &mtxData);
-	CFiles *pFAllData = new CFiles();
-	CFiles *pFFilter = new CFiles();
-	CSearch *pS = new CSearch();
-	CNetCapture *pNC = new CNetCapture();
-	CSettings *pSet = new CSettings();
-	CProcess *pProc = new CProcess();
-	CHddMgmt *pHM = new CHddMgmt();
-	
 	// read cmd line args 
-	pSet->ProcessCmdLineArgs(argv, argc);
+	if (res == 0) res = set.processCmdLineArgs(argv, argc);
 
-	cout << "LogVsPcapTracer started... (Press Enter 'q' to quit)" << endl;
-	cout << "Version: " << pSet->GetVersion() << endl;
-	cout << "---------------------------------------" << endl;
+	// maybe one day a config file
+	if (res == 0) res = set.loadIniFile();
 
-	// select nic or use the one selected
-	// check if another process is using and blocking DBGWIN_BUFFER
-	if (!exit && pSet->GetNicCount() > 1)
+	return res;
+}
+
+// select nic or use the one selected
+int multipleNic(void)
+{
+	int res = 0;
+
+	if (set.getNicCount() > 1)
 	{
-		std::cout << "Error: More than one NIC available. Use option -l and select the NIC to listen on" << endl;
-		exit = true;
+		std::cout << "Error: More than one NIC available. Use option -l and select the NIC to listen on" << std::endl;
+		res = 1;
 	}
 
-	// close running processes
-	if (!exit)
+	return res;
+}
+
+// check if another process is using and blocking DBGWIN_BUFFER
+int closeProcesses(void)
+{
+	int res = 0;
+	processes proc;
+	
+	for each (std::string p in set.getProcRunningList())
 	{
-		for each (string p in pSet->GetProcRunningList())
+		if (proc.isProcessRunning(p))
 		{
-			if (pProc->IsProcessRunning(p))
-			{
-				cout << "Error: Process \"" + p + "\" running. Close it and try again." << endl;
-				exit = true;
-			}
+			std::cout << "Error: Process \"" + p + "\" running. Close it and try again." << std::endl;
+			++res;
 		}
 	}
 
-	// start threads
-	if (!exit && pSet->GetNicToUse() > 0)
-	{
-		pNC->StartCaptureThread(pSet->GetNicToUse(), pSet->GetFilename(), pSet->GetPcapMax());	
-		pDV->Start();
+	return res;
+}
 
-		cout << "Only output from filter will be shown." << endl;
-		cout << "Filter input: \"" << pSet->GetFind() << "\"" << endl;
-		cout << "---------------------------------------" << endl;
-	}
-	else
+// check disk space
+int checkHddSpace(void)
+{
+	int res = 0;
+	hddMgmt hdd;
+
+	if (hdd.readHddDiskSpace())
 	{
-		exit = true;
+		if (hdd.getFreeMBytesAvailable() < (set.getPcapMax() * 1.5))
+		{
+			std::cout << "free disk space [MB]: " << std::to_string(hdd.getFreeMBytesAvailable()) << std::endl;
+			std::cout << "Not enough space to write files. Exit program..." << std::endl;
+			res = 1;
+		}
 	}
 
-	// main loop
-	while (!exit)
+	return res;
+}
+
+// stop capture threads
+int stopCapture(void)
+{
+	int res = 0;
+
+	// stop threads
+	if (logCap != NULL) logCap->Stop();
+	if (netCap != NULL) netCap->stopCaptureThread();
+
+	SAFE_DELETE(logCap);
+	SAFE_DELETE(netCap);
+
+	return res;
+}
+
+// start captue threads
+int startCapture(std::queue<DbgData> &data, std::mutex &mtxData)
+{
+	int res = 0;
+	
+	if (netCap != NULL || logCap != NULL) stopCapture();
+	if (netCap == NULL) netCap = new NetCapture();
+	if (logCap == NULL) logCap = new DbgView(&data, &mtxData);
+
+	// no nic selected -> exit
+	if (res == 0 && set.getNicToUse() == 0) res = 1;
+
+	if (res == 0)
+	{
+		netCap->startCaptureThread(set.getNicToUse(), set.getFilename(), set.getPcapMax());
+		logCap->Start();
+
+		std::cout << "Only output from filter will be shown." << std::endl;
+		std::cout << "Filter input: \"" << set.getFind() << "\"" << std::endl;
+		std::cout << "---------------------------------------" << std::endl;
+	}
+
+	return res;
+}
+
+int stopAnalyze(void)
+{
+	int res = 0;
+
+
+	return res;
+}
+
+int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
+{
+	int res = 0;
+	std::string line = "";
+
+	TimeInfo *ti = new TimeInfo();
+	FileMgmt *allData = new FileMgmt(ti);
+	FileMgmt *filterData = new FileMgmt(ti);
+	Search *s = new Search();
+
+	while (res != 0)
 	{
 		mtxData.lock();
-		if (qData.size() > 0)
+		if (data.size() > 0)
 		{
-			DBG_DATA dd = qData.front();
-			qData.pop();
-			line = to_string(dd.timestamp_ms) + ";" + dd.time + ";" + to_string(dd.pid) + ";" + dd.msg;
+			DbgData dd = data.front();
+			data.pop();
+			line = std::to_string(dd.timestamp_ms) + ";" + dd.time + ";" + std::to_string(dd.pid) + ";" + dd.msg;
 
 			//wcout << line << endl;
-			pFAllData->WriteToFile(pSet->GetFilename() + "_all", line, pSet->GetLogInterval());
+			allData->writeToFile(set.getFilename() + "_all", line, set.getLogInterval());
 
-			if (pS->IsInString(line, pSet->GetFind()))
+			if (s->isInString(line, set.getFind()))
 			{
-				wcout << line << endl;
+				std::cout << line << std::endl;
 
-				pFFilter->WriteToFile(pSet->GetFilename() + "_filter", line, pSet->GetLogInterval());
-				pNC->SafeCurrentDump();
+				filterData->writeToFile(set.getFilename() + "_filter", line, set.getLogInterval());
+				netCap->safeCurrentDump();
 			}
 		}
 		mtxData.unlock();
+	}
 
-		// check disk space
-		if (pHM->ReadHddValues())
-		{
-			__int64 spaceMB = pHM->GetFreeBytesAvailable() / (1024 * 1024);
+	SAFE_DELETE(s);
+	SAFE_DELETE(filterData);
+	SAFE_DELETE(allData);
+	SAFE_DELETE(ti);
 
-			if (spaceMB < (pSet->GetPcapMax() * 1.5))
-			{
-				wcout << L"free disk space [MB]: " << to_wstring(spaceMB) << endl;
-				wcout << L"Not enough space to write files. Exit program..." << endl;
-				exit = true;
-			}
-		}
-		
-		// hit enter and exit
-		while (_kbhit())
-		{
-			if (_gettch_nolock() == 'q') exit = true;
-		}
+	return res;
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	//bool exit = false;
+	int res = 0;
+	std::queue<DbgData> data;
+	std::mutex mtxData;
+
+	std::cout << "LogVsPcapTracer starting... (please wait)" << std::endl;
+	
+	// init
+	if (res == 0 && loadConfig(argc, argv) != 0)		res = 1;
+	if (res == 0 && multipleNic() != 0)					res = 2;
+	if (res == 0 && closeProcesses() != 0)				res = 3;
+	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
+	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
+
+	if (res == 0)
+	{
+		std::cout << "Version: " << set.getVersion() << std::endl;
+		std::cout << "(Press Enter 'q' to quit)" << std::endl;
+		std::cout << "---------------------------------------" << std::endl;
+	}
+
+	// main loop
+	while (res == 0 && _kbhit())
+	{
+		if (_gettch_nolock() == 'q') break;
+
+		res = checkHddSpace();
 
 		Sleep(1);
 	}
 
-	// stop threads
-	pDV->Stop();
-	pNC->StopCaptureThread();
-
 	// cleanup
-	SAFE_DELETE(pHM);
-	SAFE_DELETE(pProc);
-	SAFE_DELETE(pNC);
-	SAFE_DELETE(pS);
-	SAFE_DELETE(pFFilter);
-	SAFE_DELETE(pFAllData);
-	SAFE_DELETE(pDV);
-	SAFE_DELETE(pSet);
-
+	stopAnalyze();
+	stopCapture();
+	
 	return 0;
 }
 

@@ -86,6 +86,7 @@
     <ClInclude Include="DbgView.h" />
     <ClInclude Include="Files.h" />
     <ClInclude Include="HddMgmt.h" />
+    <ClInclude Include="LogData.h" />
     <ClInclude Include="NetCapture.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="resource.h" />
@@ -94,7 +95,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TimeInfo.h" />
-    <ClInclude Include="UnicodeConv.h" />
+    <ClInclude Include="UniConvert.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dbgprint.cpp" />
@@ -111,7 +112,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TimeInfo.cpp" />
-    <ClCompile Include="UnicodeConv.cpp" />
+    <ClCompile Include="UniConvert.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LogAndPcapSave.rc" />

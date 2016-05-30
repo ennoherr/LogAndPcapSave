@@ -3,18 +3,16 @@
 #include <string>
 
 #if UNICODE
-#define tstring wstring
+#define tstring std::wstring
 #else
-#define tstring string
+#define tstring std::string
 #endif
 
-using namespace std;
-
-class CUnicodeConv
+class UniConvert
 {
 public:
-	CUnicodeConv(void);
-	~CUnicodeConv(void);
+	UniConvert(void);
+	~UniConvert(void);
 
 	void WCharToChar(const WCHAR* Src, char* Dest, int Size);
 	void CharToWChar(const char* Src, WCHAR* Dest, int Size);
@@ -25,14 +23,14 @@ public:
 	bool AnsiToUnicode16(CHAR *in_Src, WCHAR *out_Dst, INT in_MaxLen);
 	bool AnsiToUnicode16L(CHAR *in_Src, INT in_SrcLen, WCHAR *out_Dst, INT in_MaxLen);
 
-	wstring s2ws(const std::string& str);
-	wstring ts2ws(const tstring& tstr);
+	std::wstring s2ws(const std::string& str);
+	std::wstring ts2ws(const tstring& tstr);
 
-	string ws2s(const std::wstring& wstr);
-	string ts2s(const tstring& tstr);
+	std::string ws2s(const std::wstring& wstr);
+	std::string ts2s(const tstring& tstr);
 
-	tstring ws2ts(const wstring& wstr);
-	tstring s2ts(const string& str);
+	tstring ws2ts(const std::wstring& wstr);
+	tstring s2ts(const std::string& str);
 
 };
 

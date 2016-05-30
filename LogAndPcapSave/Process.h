@@ -2,14 +2,12 @@
 
 #include <string>
 
-using namespace std;
-
-class CProcess
+class processes
 {
 public:
-	CProcess(void);
-	~CProcess(void);
+	processes(void);
+	~processes(void);
 
-	bool IsProcessRunning(const wstring processName);
+	bool isProcessRunning(const std::string processName);
 };
 

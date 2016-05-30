@@ -2,23 +2,26 @@
 
 #include <string>
 
-class CTimeInfo
+class TimeInfo
 {
 public:
-	CTimeInfo(void);
-	~CTimeInfo(void);
+	TimeInfo(void);
+	~TimeInfo(void);
 
-	unsigned long GetTimestamp(void);
-	long long GetTimestampMs(void);
+	unsigned long getTimestamp(void);
+	long long getTimestampMs(void);
 	
-	std::string GetTimeReadable(std::string DateTimeSep = ";", std::string TimeSep = ":");
-	std::string GetTimeReadableMs(std::string DateTimeSep = ";", std::string TimeSep = ":", std::string MSecSep = ".");
+	std::string getTimeReadable(std::string DateTimeSep = ";", std::string TimeSep = ":");
+	std::wstring getTimeReadableW(std::wstring DateTimeSep = L";", std::wstring TimeSep = L":");
+	std::string getTimeReadableMs(std::string DateTimeSep = ";", std::string TimeSep = ":", std::string MSecSep = ".");
+	std::wstring getTimeReadableMsW(std::wstring DateTimeSep = L";", std::wstring TimeSep = L":", std::wstring MSecSep = L".");
 
-	bool IsNewDay(void);
-	bool IsNewHour(void);
+
+	bool isNewDay(void);
+	bool isNewHour(void);
 
 private:
-	time_t m_tSavedDay;
-	time_t m_tSavedHour;
+	time_t savedDay;
+	time_t savedHour;
 };
 

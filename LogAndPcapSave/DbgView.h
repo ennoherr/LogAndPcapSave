@@ -5,10 +5,9 @@
 #include <atomic>
 #include <mutex>
 
+#include "LogData.h"
 #include "TimeInfo.h"
-#include "UnicodeConv.h"
-
-using namespace std;
+#include "UniConvert.h"
 
 struct DBG_BUFFER
 {
@@ -25,24 +24,24 @@ struct DBG_BUFFER
 	}
 };
 
-class CDbgView
+class DbgView
 {
 public:
-	CDbgView(queue<DBG_DATA> *qData, mutex *mtxData);
-	~CDbgView(void);
+	DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut);
+	~DbgView(void);
 
 	int Start(void);
 	int Stop(void);
 
 private:
-	queue<DBG_DATA> *m_qData;
-	thread m_thWorker;
-	mutex *m_mtxData;
-	atomic<bool> m_bThreadRunning;
+	std::queue<DbgData> *data;
+	std::thread worker;
+	std::mutex *mtx;
+	std::atomic<bool> isThreadRunning;
 
-	HANDLE m_hReadyEvent;
+	HANDLE readyEvent;
 
 	void EventThreadRoutine(void);
-	string RemoveCRLF(string str);
+	std::string removeCRLF(std::string str);
 };
 

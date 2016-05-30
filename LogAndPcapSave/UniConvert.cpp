@@ -3,36 +3,34 @@
 #include <string>
 #include <codecvt>
 
-#include "UnicodeConv.h"
-
-using namespace std;
+#include "UniConvert.h"
 
 #if UNICODE
-#define tstring wstring
+#define tstring std::wstring
 #else
-#define tstring string
+#define tstring std::string
 #endif
 
-CUnicodeConv::CUnicodeConv(void)
+UniConvert::UniConvert(void)
 {
 }
 
 
-CUnicodeConv::~CUnicodeConv(void)
+UniConvert::~UniConvert(void)
 {
 }
 
-void CUnicodeConv::WCharToChar(const WCHAR* Src, char* Dest, int Size)
+void UniConvert::WCharToChar(const WCHAR* Src, char* Dest, int Size)
 {
 	WideCharToMultiByte(CP_ACP, 0, Src, wcslen(Src)+1, Dest , Size, NULL, NULL); 
 }
 
-void CUnicodeConv::CharToWChar(const char* Src, WCHAR* Dest, int Size)
+void UniConvert::CharToWChar(const char* Src, WCHAR* Dest, int Size)
 {
 	MultiByteToWideChar(CP_ACP, 0, Src, -1, Dest, Size);
 }
 
-void CUnicodeConv::TCharToChar(const TCHAR* Src, char* Dest, int Size) 
+void UniConvert::TCharToChar(const TCHAR* Src, char* Dest, int Size) 
 {
 #ifdef UNICODE
 	WideCharToMultiByte(CP_ACP, 0, Src, wcslen(Src)+1, Dest , Size, NULL, NULL); 
@@ -41,7 +39,7 @@ void CUnicodeConv::TCharToChar(const TCHAR* Src, char* Dest, int Size)
 #endif
 } 
 
-void CUnicodeConv::TCharToWChar(const TCHAR* Src, wchar_t* Dest, int Size)
+void UniConvert::TCharToWChar(const TCHAR* Src, wchar_t* Dest, int Size)
 {
 #ifdef UNICODE
 	wcscpy_s(Dest, Size, Src);
@@ -50,7 +48,7 @@ void CUnicodeConv::TCharToWChar(const TCHAR* Src, wchar_t* Dest, int Size)
 #endif
 }
 
-void CUnicodeConv::CharToTChar(const char* Src, TCHAR* Dest, int Size)
+void UniConvert::CharToTChar(const char* Src, TCHAR* Dest, int Size)
 {
 #ifdef UNICODE
 	MultiByteToWideChar(CP_ACP, 0, Src, -1, Dest, Size);
@@ -64,7 +62,7 @@ void CUnicodeConv::CharToTChar(const char* Src, TCHAR* Dest, int Size)
 /* ansi-unicode conversion */
 /***************************/
 
-bool CUnicodeConv::AnsiToUnicode16(CHAR *in_Src, WCHAR *out_Dst, INT in_MaxLen)
+bool UniConvert::AnsiToUnicode16(CHAR *in_Src, WCHAR *out_Dst, INT in_MaxLen)
 {
 	/* locals */
 	INT lv_Len;
@@ -98,7 +96,7 @@ bool CUnicodeConv::AnsiToUnicode16(CHAR *in_Src, WCHAR *out_Dst, INT in_MaxLen)
 }
 
 
-bool CUnicodeConv::AnsiToUnicode16L(CHAR *in_Src, INT in_SrcLen, WCHAR *out_Dst, INT in_MaxLen)
+bool UniConvert::AnsiToUnicode16L(CHAR *in_Src, INT in_SrcLen, WCHAR *out_Dst, INT in_MaxLen)
 {
 	/* locals */
 	INT lv_Len;
@@ -134,23 +132,23 @@ bool CUnicodeConv::AnsiToUnicode16L(CHAR *in_Src, INT in_SrcLen, WCHAR *out_Dst,
 
 // http://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string
 // 2015-06-08
-wstring CUnicodeConv::s2ws(const string& str)
+std::wstring UniConvert::s2ws(const std::string& str)
 {
-    typedef codecvt_utf8<wchar_t> convert_typeX;
-    wstring_convert<convert_typeX, wchar_t> converterX;
+    typedef std::codecvt_utf8<wchar_t> convert_typeX;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
 
     return converterX.from_bytes(str);
 }
 
-string CUnicodeConv::ws2s(const std::wstring& wstr)
+std::string UniConvert::ws2s(const std::wstring& wstr)
 {
-    typedef codecvt_utf8<wchar_t> convert_typeX;
-    wstring_convert<convert_typeX, wchar_t> converterX;
+    typedef std::codecvt_utf8<wchar_t> convert_typeX;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
 
     return converterX.to_bytes(wstr);
 }
 
-wstring CUnicodeConv::ts2ws(const tstring& tstr)
+std::wstring UniConvert::ts2ws(const tstring& tstr)
 {
 #if UNICODE
 	return tstr;
@@ -159,7 +157,7 @@ wstring CUnicodeConv::ts2ws(const tstring& tstr)
 #endif
 }
 
-string CUnicodeConv::ts2s(const tstring& tstr)
+std::string UniConvert::ts2s(const tstring& tstr)
 {
 #if UNICODE
 	return ws2s(tstr);
@@ -168,7 +166,7 @@ string CUnicodeConv::ts2s(const tstring& tstr)
 #endif
 }
 
-tstring CUnicodeConv::ws2ts(const wstring& wstr)
+tstring UniConvert::ws2ts(const std::wstring& wstr)
 {
 #if UNICODE
     return wstr;
@@ -178,7 +176,7 @@ tstring CUnicodeConv::ws2ts(const wstring& wstr)
 
 }
 
-tstring CUnicodeConv::s2ts(const string& str)
+tstring UniConvert::s2ts(const std::string& str)
 {
 #if UNICODE
 	return s2ws(str);

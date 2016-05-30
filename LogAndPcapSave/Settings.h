@@ -2,22 +2,23 @@
 
 #include <string>
 
-class CSettings
+class settings
 {
 public:
-	CSettings(void);
-	~CSettings(void);
+	settings(void);
+	~settings(void);
 
-	int ProcessCmdLineArgs(TCHAR** szArglist, int iArgs);
+	int processCmdLineArgs(TCHAR** szArglist, int iArgs);
+	int loadIniFile(void);
 
-	std::string GetVersion(void);
-	std::string GetFilename(void);
-	std::string GetFind(void);
-	std::string GetLogInterval(void);
-	std::vector<std::string> GetProcRunningList(void);
-	int GetNicToUse(void);
-	int GetNicCount(void);
-	int GetPcapMax(void);
+	std::string getVersion(void);
+	std::string getFilename(void);
+	std::string getFind(void);
+	std::string getLogInterval(void);
+	std::vector<std::string> getProcRunningList(void);
+	int getNicToUse(void);
+	int getNicCount(void);
+	int getPcapMax(void);
 
 private:
 	std::string find;
@@ -29,6 +30,6 @@ private:
 	int nicCount;
 	int pcapMaxSize;
 
-	void PrintNicList(void);
+	void printNicList(void);
 };
 

@@ -3,18 +3,15 @@
 #include <string>
 #include "TimeInfo.h"
 
-using namespace std;
-
-class CFiles
+class FileMgmt
 {
 public:
-	CFiles(CTimeInfo *pTI);
-	~CFiles(void);
+	FileMgmt(TimeInfo *tiInOut);
+	~FileMgmt(void);
 
-	int WriteToFile(wstring fname, wstring line, wstring interval = L"none", bool bAppend = true);
+	int writeToFile(std::string fname, std::string line, std::string interval = "none", bool append = true);
 
 private:
-	CTimeInfo *m_pTI;
-	wstring m_Logfile;
+	TimeInfo *ti;
 };
 

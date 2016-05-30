@@ -7,22 +7,17 @@
 #include "Search.h"
 
 
-using namespace std;
-
-
-
-CSearch::CSearch(void)
+Search::Search(void)
 {
 }
 
-
-CSearch::~CSearch(void)
+Search::~Search(void)
 {
 }
 
-bool CSearch::IsInString(wstring hay, wstring needle)
+bool Search::isInString(std::string hay, std::string needle)
 {
-	bool bRet = false;
+	bool res = false;
 
 	if (hay.length() > 0 && needle.length() > 0)
 	{
@@ -30,11 +25,12 @@ bool CSearch::IsInString(wstring hay, wstring needle)
 		transform(needle.begin(), needle.end(), needle.begin(), ::toupper);
 
 		size_t found = hay.find(needle);
-		if (found != string::npos)
+		if (found != std::string::npos)
 		{
-			bRet = true;
+			res = true;
 		}
 	}
 
-	return bRet;
+	return res;
 }
+

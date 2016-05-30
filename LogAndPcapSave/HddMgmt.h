@@ -2,23 +2,25 @@
 
 #include <string>
 
-using namespace std;
-
-class CHddMgmt
+class hddMgmt
 {
 public:
-	CHddMgmt(void);
-	~CHddMgmt(void);
+	hddMgmt(void);
+	~hddMgmt(void);
 
-	bool ReadHddValues(wstring hddPath = L"");
+	bool readHddDiskSpace(std::string hddPath = "");
 
-	__int64 GetFreeBytesAvailable(void);
-	__int64 GetTotalNumberOfBytes(void);
-	__int64 GetTotalNumberOfFreeBytes(void);
+	__int64 getFreeBytesAvailable(void);
+	__int64 getTotalNumberOfBytes(void);
+	__int64 getTotalNumberOfFreeBytes(void);
 
-	double GetFreeGBytesAvailable(void);
-	double GetTotalNumberOfGBytes(void);
-	double GetTotalNumberOfFreeGBytes(void);
+	__int64 getFreeMBytesAvailable(void);
+	__int64 getTotalNumberOfMBytes(void);
+	__int64 getTotalNumberOfFreeMBytes(void);
+
+	double getFreeGBytesAvailable(void);
+	double getTotalNumberOfGBytes(void);
+	double getTotalNumberOfFreeGBytes(void);
 
 private:
 	ULARGE_INTEGER m_uliFreeBytesAvailable;

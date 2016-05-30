@@ -2,14 +2,12 @@
 
 #include <string>
 
-using namespace std;
-
-class CSearch
+class Search
 {
 public:
-	CSearch(void);
-	~CSearch(void);
+	Search(void);
+	~Search(void);
 
-	bool IsInString(wstring hay, wstring needle);
+	bool isInString(std::string hay, std::string needle);
 };
 

@@ -13,13 +13,12 @@
 #include <ctime>
 #include <chrono>
 
+#include "LogData.h"
 #include "TimeInfo.h"
 #include "dbgprint.h"
-#include "UnicodeConv.h"
 
 #include "DbgView.h"
 
-using namespace std;
 
 #ifndef STRING_LENGTH
 	#define STRING_LENGTH 1024
@@ -38,197 +37,201 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Default constructor. </summary>
 ///
-/// <remarks>	Enno Herr, 24.05.2016. </remarks>
+/// <remarks>	Enno Herr, 30.06.2016. </remarks>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CDbgView::CDbgView(queue<DBG_DATA> *qData, mutex *mtxData)
-	: m_thWorker()
-	, m_bThreadRunning(false)
-	, m_qData(NULL)
-	, m_mtxData(NULL)
-	, m_hReadyEvent(NULL)
+DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
+	: worker()
+	, isThreadRunning(false)
+	, data(NULL)
+	, mtx(NULL)
+	, readyEvent(NULL)
 {
-	m_qData = qData;
-	m_mtxData = mtxData;
+	data = dataInOut;
+	mtx = mtxInOut;
 }	  
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Destructor. </summary>
 ///
-/// <remarks>	Enno Herr, 24.05.2016. </remarks>
+/// <remarks>	Enno Herr, 30.06.2016. </remarks>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CDbgView::~CDbgView(void)
+DbgView::~DbgView(void)
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Start thread. </summary>
 ///
-/// <remarks>	Enno Herr, 24.05.2016. </remarks>
+/// <remarks>	Enno Herr, 30.06.2016. </remarks>
 ///
 /// <returns>	0 on success, else error. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int CDbgView::Start(void)
+int DbgView::Start(void)
 {
-	if (m_bThreadRunning)
+	if (isThreadRunning)
 	{
-		dbgtprintf(_T("CDbgView::Start ERROR: thread already running with ID: 0x%lx"), m_thWorker.get_id());
+		dbgtprintf(_T("DbgView::Start ERROR: thread already running with ID: 0x%lx"), worker.get_id());
 		return -1;
 	}
 
-	int iRet = 0;
-	m_thWorker = thread(&CDbgView::EventThreadRoutine, this);
+	int res = 0;
+	worker = std::thread(&DbgView::EventThreadRoutine, this);
 
-	if (m_thWorker.joinable())
+	if (worker.joinable())
 	{
-		m_bThreadRunning = true;
-		iRet = 0;
-		dbgtprintf(_T("CDbgView::Start STATUS: thread started with ID: 0x%lx"), m_thWorker.get_id());
+		isThreadRunning = true;
+		res = 0;
+
+		dbgtprintf(_T("DbgView::Start STATUS: thread started with ID: 0x%lx"), worker.get_id());
 	}
 	else
 	{
-		dbgtprintf(_T("CDbgView::Start ERROR: Failed to start thread, error = %d"), GetLastError());
-		iRet = 1;
+		res = 1;
+
+		dbgtprintf(_T("DbgView::Start ERROR: Failed to start thread, error = %d"), GetLastError());
 	}
 
-	return iRet;
+	return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Stop thread. </summary>
 ///
-/// <remarks>	Enno Herr, 24.05.2016. </remarks>
+/// <remarks>	Enno Herr, 30.06.2016. </remarks>
 ///
 /// <returns>	0 on success, else error. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int CDbgView::Stop(void)
+int DbgView::Stop(void)
 {
-	int iRet = 0;
+	int res = 0;
 
-	if (m_thWorker.joinable())
+	if (worker.joinable())
 	{
-		assert(m_hReadyEvent != INVALID_HANDLE_VALUE);
-		SetEvent(m_hReadyEvent);
+		assert(readyEvent != INVALID_HANDLE_VALUE);
+		SetEvent(readyEvent);
 
-		SAFE_HANDLE(m_hReadyEvent);
+		SAFE_HANDLE(readyEvent);
 
-		m_bThreadRunning = false;
-		m_thWorker.join();
+		isThreadRunning = false;
+		worker.join();
 		
-		dbgtprintf(_T("CDbgView::Stop STATUS: thread stopped"));
+		dbgtprintf(_T("DbgView::Stop STATUS: thread stopped"));
 	}
 	else
 	{
-		dbgtprintf(_T("CDbgView::Stop WARNING: thread not running."));
-		iRet = 1;
+		res = 1;
+
+		dbgtprintf(_T("DbgView::Stop WARNING: thread not running."));
 	}
 
-	return iRet;
+	return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	The main part of this routine comes from the MSDN DBMON example. </summary>
 ///
-/// <remarks>	Enno Herr, 24.05.2016. </remarks>
+/// <remarks>	Enno Herr, 30.06.2016. </remarks>
 ///
 /// <param name="pParam">	params passed to the thread as void*. </param>
 ///
 /// <returns>	0 on success, else error. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CDbgView::EventThreadRoutine(void)
+void DbgView::EventThreadRoutine(void)
 {
-	// startup delay
+	// startup delay - wait until a previous thread has been stopped
 	for (int i = 0; i < 32; i++)
 	{
-		if (m_bThreadRunning) break;
+		if (isThreadRunning) break;
 		else Sleep(100);
 	}
 
-	unsigned int iRet = 0;
-	string temp = "";
+	unsigned int res = 0;
+	std::string temp = "";
 	HANDLE hAckEvent = INVALID_HANDLE_VALUE;
 	HANDLE SharedFile = INVALID_HANDLE_VALUE;
 	DBG_BUFFER* pDB = NULL;
 	SECURITY_ATTRIBUTES sa = { 0 };
 	SECURITY_DESCRIPTOR sd = { 0 };
 
-	CTimeInfo TI;
+	TimeInfo TI;
 
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.bInheritHandle = TRUE;
 	sa.lpSecurityDescriptor = &sd;
 
-	while (m_bThreadRunning)
+	while (isThreadRunning)
 	{
 		try
 		{
 			// Set the thread to a high priority because the debug strings
 			// being sent by the debugged app can make it wait if
 			// we don't grab the events quickly enough.
-			if (iRet == 0 && !SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
+			if (res == 0 && !SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 			{
-				iRet = 1;
+				res = 1;
 			}
 
 			// init
-			if (iRet == 0 && !InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
+			if (res == 0 && !InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
 			{
-				iRet = 2;
+				res = 2;
 			}
-			if (iRet == 0 && !SetSecurityDescriptorDacl(&sd, TRUE, (PACL)NULL, FALSE))
+			if (res == 0 && !SetSecurityDescriptorDacl(&sd, TRUE, (PACL)NULL, FALSE))
 			{
-				iRet = 3;
+				res = 3;
 			}
-			if (iRet == 0 && !(hAckEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_BUFFER_READY"))))
+			if (res == 0 && !(hAckEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_BUFFER_READY"))))
 			{
-				iRet = 4;
+				res = 4;
 			}
-			if (iRet == 0 && GetLastError() == ERROR_ALREADY_EXISTS)
+			if (res == 0 && GetLastError() == ERROR_ALREADY_EXISTS)
 			{
-				iRet = 5;
+				res = 5;
 			}
-			if (iRet == 0 && !(m_hReadyEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_DATA_READY"))))
+			if (res == 0 && !(readyEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_DATA_READY"))))
 			{
-				iRet = 6;
+				res = 6;
 			}
-			if (iRet == 0 && !(SharedFile = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, sizeof(DBG_BUFFER), _T("DBWIN_BUFFER"))))
+			if (res == 0 && !(SharedFile = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, sizeof(DBG_BUFFER), _T("DBWIN_BUFFER"))))
 			{
-				iRet = 7;
+				res = 7;
 			}
-			if (iRet == 0 && !(pDB = (DBG_BUFFER*)MapViewOfFile(SharedFile, FILE_MAP_READ, 0, 0, 0)))
+			if (res == 0 && !(pDB = (DBG_BUFFER*)MapViewOfFile(SharedFile, FILE_MAP_READ, 0, 0, 0)))
 			{
-				iRet = 8;
+				res = 8;
 			}
 
-			if (iRet == 0)
+			if (res == 0)
 			{
 				SetEvent(hAckEvent);
 
-				while (m_bThreadRunning)
+				// loop - get data and write it to queue
+				while (isThreadRunning)
 				{
-					if (WaitForSingleObject(m_hReadyEvent, INFINITE) != WAIT_OBJECT_0)
+					if (WaitForSingleObject(readyEvent, INFINITE) != WAIT_OBJECT_0)
 					{
 						break;
 					}
 
 					//printf("%d, %s", pDB->dwPid, pDB->abData);
 
-					DBG_DATA dd;
-					dd.time = TI.GetTimeReadableMs();
-					dd.timestamp_ms = TI.GetTimestampMs();
+					DbgData dd;
+					dd.time = TI.getTimeReadableMs();
+					dd.timestamp_ms = TI.getTimestampMs();
 					dd.pid = pDB->dwPid;
 					temp = reinterpret_cast<const char*>(pDB->abData);
-					// some strings are too long causing an std::range_error exception when converting to wstring
+					// some strings are too long causing an std::range_error exception when converting to string
 					if (temp.length() > 1024) temp = temp.substr(0, 1024);
-					dd.msg = RemoveCRLF(temp);
+					dd.msg = removeCRLF(temp);
 
-					m_mtxData->lock();
-					m_qData->push(dd);
-					m_mtxData->unlock();
+					mtx->lock();
+					data->push(dd);
+					mtx->unlock();
 
 					// Ready for new event
 					SetEvent(hAckEvent);
@@ -236,10 +239,10 @@ void CDbgView::EventThreadRoutine(void)
 				} // end while
 			}
 		}
-		catch(exception e)
+		catch(std::exception e)
 		{
-			dbgprintf("CDbgView::EventThreadRoutine EXCEPTION: EventThreadRoutine(), caught = %s, type = %s", e.what(), typeid(e).name());
-			iRet = 99;
+			dbgprintf("DbgView::EventThreadRoutine EXCEPTION: EventThreadRoutine(), caught = %s, type = %s", e.what(), typeid(e).name());
+			res = 99;
 		}
 
 		// cleanup
@@ -252,35 +255,35 @@ void CDbgView::EventThreadRoutine(void)
 		}
 		SAFE_HANDLE(SharedFile);
 
-		if (iRet > 0)
+		if (res > 0)
 		{
-			dbgtprintf(_T("CDbgView::EventThreadRoutine ERROR: An error occured, iRet = %d, ErrorCode = %d"), iRet, GetLastError());
+			dbgtprintf(_T("DbgView::EventThreadRoutine ERROR: An error occured, res = %d, ErrorCode = %d"), res, GetLastError());
 			
-			// wait 10 sec
+			// wait 10 sec before restarting the loop
 			Sleep(10*1000);
-			iRet = 0;
+			res = 0;
 		}
 
 	} // end while
 
 
-	dbgtprintf(_T("CDbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), m_thWorker.get_id());
+	dbgtprintf(_T("DbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), worker.get_id());
 	
 	// in case thread has exited for other reasons
-	m_bThreadRunning = false;
+	isThreadRunning = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Remove CR and LF from string. </summary>
 ///
-/// <remarks>	Enno Herr, 24.05.2016 </remarks>
+/// <remarks>	Enno Herr, 30.06.2016. </remarks>
 ///
 /// <param name="str">	string. </param>
 ///
 /// <returns>	string without CR and LF. </returns>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-string CDbgView::RemoveCRLF(string str)
+std::string DbgView::removeCRLF(std::string str)
 {
 	str.erase(remove(str.begin(), str.end(), '\r'), str.end());
 	str.erase(remove(str.begin(), str.end(), '\n'), str.end());

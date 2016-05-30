@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "dbgprint.h"
-#include "UnicodeConv.h"
+#include "UniConvert.h"
 #include "NetCapture.h"
 
 #include "Settings.h"
@@ -12,7 +12,7 @@
 using namespace std;
 
 
-CSettings::CSettings(void)
+settings::settings(void)
 	: version("1.0.0.0 - Build 2016-05-24")
 	, fname("out")
 	, find("")
@@ -24,11 +24,11 @@ CSettings::CSettings(void)
 }
 
 
-CSettings::~CSettings(void)
+settings::~settings(void)
 {
 }
 
-int CSettings::ProcessCmdLineArgs(TCHAR** szArglist, int iArgs)
+int settings::processCmdLineArgs(TCHAR** szArglist, int iArgs)
 {
 	if(!szArglist)
 	{
@@ -36,7 +36,7 @@ int CSettings::ProcessCmdLineArgs(TCHAR** szArglist, int iArgs)
 	}
 
 	int i = 0;
-	CUnicodeConv UC;
+	UniConvert uc;
 
 	for (i = 0; i < iArgs; i++)
 	{
@@ -47,7 +47,7 @@ int CSettings::ProcessCmdLineArgs(TCHAR** szArglist, int iArgs)
 	{
 		if (_tcsicmp(szArglist[i], _T("-l")) == 0) // list interfaces
 		{
-			PrintNicList();
+			printNicList();
 			
 			// we can exit the loop here
 			break;
@@ -63,21 +63,21 @@ int CSettings::ProcessCmdLineArgs(TCHAR** szArglist, int iArgs)
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				fname = UC.ts2s(szArglist[i]);
+				fname = uc.ts2s(szArglist[i]);
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-oi")) == 0) // new log interval
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				logfileInterval = UC.ts2s(szArglist[i]);
+				logfileInterval = uc.ts2s(szArglist[i]);
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-f")) == 0) // string to find
 		{
 			if (_tcslen(szArglist[++i]) > 0)
 			{
-				find = UC.ts2s(szArglist[i]);
+				find = uc.ts2s(szArglist[i]);
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-pcapmax")) == 0) // string to find
@@ -117,27 +117,36 @@ int CSettings::ProcessCmdLineArgs(TCHAR** szArglist, int iArgs)
 	return 0;
 }
 
-string CSettings::GetVersion(void)
+int settings::loadIniFile(void)
+{
+	int res = 0;
+	
+	// nothing todo yet
+
+	return res;
+}
+
+string settings::getVersion(void)
 {
 	return version;
 }
 
-string CSettings::GetFilename(void)
+string settings::getFilename(void)
 {
 	return fname;
 }
 
-string CSettings::GetFind(void)
+string settings::getFind(void)
 {
 	return find;
 }
 
-string CSettings::GetLogInterval(void)
+string settings::getLogInterval(void)
 {
 	return logfileInterval;
 }
 
-std::vector<std::string> CSettings::GetProcRunningList(void)
+std::vector<std::string> settings::getProcRunningList(void)
 {
 	// todo: find a better way than hardcode it
 	std::vector<std::string> proc;
@@ -146,23 +155,23 @@ std::vector<std::string> CSettings::GetProcRunningList(void)
 	return proc;
 }
 
-int CSettings::GetNicToUse(void)
+int settings::getNicToUse(void)
 {
 	return nicToUse;
 }
 
-int CSettings::GetNicCount(void)
+int settings::getNicCount(void)
 {
-	CNetCapture NC;
-	return NC.GetInterfacesCount();
+	NetCapture nc;
+	return nc.getInterfacesCount();
 }
 
 
-void CSettings::PrintNicList(void)
+void settings::printNicList(void)
 {
 	std::vector<std::string> adapters;
-	CNetCapture NC;
-	NC.GetInterfaces(adapters);
+	NetCapture nc;
+	nc.getInterfaces(adapters);
 	
 	for (unsigned i = 0; i < adapters.size(); i++)
 	{
@@ -170,7 +179,7 @@ void CSettings::PrintNicList(void)
 	}
 }
 
-int CSettings::GetPcapMax(void)
+int settings::getPcapMax(void)
 {
 	return pcapMaxSize;
 }
