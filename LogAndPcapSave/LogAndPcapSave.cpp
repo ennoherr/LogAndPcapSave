@@ -187,7 +187,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::queue<DbgData> data;
 	std::mutex mtxData;
 
-	std::cout << "LogVsPcapTracer starting... (please wait)" << std::endl;
+	std::cout << "LogAndPcapSave starting... (please wait)" << std::endl;
 	
 	// init
 	if (res == 0 && loadConfig(argc, argv) != 0)		res = 1;
