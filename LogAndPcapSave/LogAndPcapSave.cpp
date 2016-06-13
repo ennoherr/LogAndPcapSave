@@ -19,13 +19,15 @@
 
 #include "Files.h"
 
-#define SAFE_DELETE(p) {if (p) {delete p; p = NULL;}}
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(p) {if (p) {delete(p); p = NULL;}}
+#endif
 
 // global
 settings set;
 NetCapture *netCap = NULL;
 DbgView *logCap = NULL;
-
+Search *s = NULL;
 
 int loadConfig(int argc, TCHAR** argv)
 {
@@ -43,11 +45,17 @@ int loadConfig(int argc, TCHAR** argv)
 // select nic or use the one selected
 int multipleNic(void)
 {
+	if (set.getNicIsSet())
+	{
+		return 0;
+	}
+
 	int res = 0;
 
-	if (set.getNicCount() > 1)
+	if (res == 0 && set.getNicCount() > 1)
 	{
 		std::cout << "Error: More than one NIC available. Use option -l and select the NIC to listen on" << std::endl;
+		std::cout << std::endl;
 		res = 1;
 	}
 
@@ -97,8 +105,8 @@ int stopCapture(void)
 	int res = 0;
 
 	// stop threads
-	if (logCap != NULL) logCap->Stop();
-	if (netCap != NULL) netCap->stopCaptureThread();
+	if (res == 0 && logCap != NULL) logCap->Stop();
+	if (res == 0 && netCap != NULL) netCap->stopCaptureThread();
 
 	SAFE_DELETE(logCap);
 	SAFE_DELETE(netCap);
@@ -111,9 +119,13 @@ int startCapture(std::queue<DbgData> &data, std::mutex &mtxData)
 {
 	int res = 0;
 	
-	if (netCap != NULL || logCap != NULL) stopCapture();
-	if (netCap == NULL) netCap = new NetCapture();
-	if (logCap == NULL) logCap = new DbgView(&data, &mtxData);
+	if (res == 0 && netCap != NULL || logCap != NULL) stopCapture();
+	
+	if (res == 0 && netCap == NULL) netCap = new NetCapture();
+	else res = 1;
+
+	if (res == 0 && logCap == NULL) logCap = new DbgView(&data, &mtxData);
+	else res = 2;
 
 	// no nic selected -> exit
 	if (res == 0 && set.getNicToUse() == 0) res = 1;
@@ -135,6 +147,10 @@ int stopAnalyze(void)
 {
 	int res = 0;
 
+	if (res == 0 && s != NULL)	res = s->stopThread();
+	else res = 1;
+
+	SAFE_DELETE(s);
 
 	return res;
 }
@@ -142,40 +158,11 @@ int stopAnalyze(void)
 int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
 {
 	int res = 0;
-	std::string line = "";
 
-	TimeInfo *ti = new TimeInfo();
-	FileMgmt *allData = new FileMgmt(ti);
-	FileMgmt *filterData = new FileMgmt(ti);
-	Search *s = new Search();
+	if (res == 0 && s == NULL)	s = new Search();
+	else res = 1;
 
-	while (res != 0)
-	{
-		mtxData.lock();
-		if (data.size() > 0)
-		{
-			DbgData dd = data.front();
-			data.pop();
-			line = std::to_string(dd.timestamp_ms) + ";" + dd.time + ";" + std::to_string(dd.pid) + ";" + dd.msg;
-
-			//wcout << line << endl;
-			allData->writeToFile(set.getFilename() + "_all", line, set.getLogInterval());
-
-			if (s->isInString(line, set.getFind()))
-			{
-				std::cout << line << std::endl;
-
-				filterData->writeToFile(set.getFilename() + "_filter", line, set.getLogInterval());
-				netCap->safeCurrentDump();
-			}
-		}
-		mtxData.unlock();
-	}
-
-	SAFE_DELETE(s);
-	SAFE_DELETE(filterData);
-	SAFE_DELETE(allData);
-	SAFE_DELETE(ti);
+	if (res == 0)	res = s->startThread(netCap, data, mtxData, set.getFilename(), set.getLogInterval(), set.getFind());
 
 	return res;
 }

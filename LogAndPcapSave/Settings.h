@@ -18,6 +18,7 @@ public:
 	std::vector<std::string> getProcRunningList(void);
 	int getNicToUse(void);
 	int getNicCount(void);
+	bool getNicIsSet(void);
 	int getPcapMax(void);
 
 private:
@@ -28,6 +29,7 @@ private:
 
 	int nicToUse;
 	int nicCount;
+	bool nicIsSet;
 	int pcapMaxSize;
 
 	void printNicList(void);

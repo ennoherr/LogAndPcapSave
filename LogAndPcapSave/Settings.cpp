@@ -57,6 +57,7 @@ int settings::processCmdLineArgs(TCHAR** szArglist, int iArgs)
 			if (_tcslen(szArglist[++i]) > 0)
 			{
 				nicToUse = _ttoi(szArglist[i]);
+				nicIsSet = true;
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-o")) == 0) // output filename
@@ -164,6 +165,11 @@ int settings::getNicCount(void)
 {
 	NetCapture nc;
 	return nc.getInterfacesCount();
+}
+
+bool settings::getNicIsSet(void)
+{
+	return nicIsSet;
 }
 
 
