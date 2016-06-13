@@ -12,6 +12,7 @@
 #include <thread>
 #include <atomic>
 #include <iostream>
+#include <chrono>
 
 #include "Search.h"
 
@@ -42,6 +43,7 @@ int Search::startThread(NetCapture *netCap, std::queue<DbgData> &data, std::mute
 
 	// todo - convert to lamda, since microsoft threads cannot proceed so many params
 	//if (res == 0) worker = std::thread(&Search::searchData, this, netCap, data, mtxData, filename, interval, find);
+	if (res == 0) worker = std::thread([&]() { searchData(netCap, data, mtxData, filename, interval, find); });
 
 	if (worker.joinable())
 	{
@@ -85,7 +87,7 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex
 	for (int i = 0; i < 32; i++)
 	{
 		if (isThreadRunning) break;
-		else Sleep(100);
+		else std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
 	int res = 0;
@@ -96,7 +98,7 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex
 	FileMgmt *allData = new FileMgmt(ti);
 	FileMgmt *filterData = new FileMgmt(ti);
 
-	while (res != 0)
+	while (isThreadRunning)
 	{
 		mtxData.lock();
 		if (data.size() > 0)
@@ -117,6 +119,8 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex
 			}
 		}
 		mtxData.unlock();
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
 	SAFE_DELETE(filterData);

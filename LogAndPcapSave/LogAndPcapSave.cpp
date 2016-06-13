@@ -169,7 +169,7 @@ int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//bool exit = false;
+	bool exit = false;
 	int res = 0;
 	std::queue<DbgData> data;
 	std::mutex mtxData;
@@ -191,13 +191,16 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	// main loop
-	while (res == 0 && _kbhit())
+	while (res == 0 && !exit)
 	{
-		if (_gettch_nolock() == 'q') break;
+		while (res == 0 && _kbhit())
+		{
+			if (_gettch_nolock() == 'q') exit = true;
+		}
 
 		res = checkHddSpace();
 
-		Sleep(1);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
 	// cleanup
