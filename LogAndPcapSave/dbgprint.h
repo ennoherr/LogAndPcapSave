@@ -6,6 +6,7 @@
 void InitDebugOut(void);
 void DeInitDebugOut(void);
 
+#ifdef _WIN32
 void __cdecl dbgprintf(const char *format, ...);
 void __cdecl dbgwprintf(const wchar_t *format, ...);
 void __cdecl dbgtprintf(LPCTSTR format, ...);
@@ -15,6 +16,21 @@ void GetDateTimeNowT(TCHAR* buffer, bool bDate = true, bool bTime = true);
 
 void DebugInfo(const char* szInfo, bool bTime = true, bool bDebug = true, bool bPrint = true);
 void DebugInfoT(const TCHAR* szInfo, bool bTime = true, bool bDebug = true, bool bPrint = true);
+
+#else
+void dbgprintf(const char *format, ...) {};
+void dbgwprintf(const wchar_t *format, ...) {};
+void dbgtprintf(LPCTSTR format, ...) {};
+
+void GetDateTimeNow(char* buffer, bool bDate = true, bool bTime = true);
+void GetDateTimeNowT(TCHAR* buffer, bool bDate = true, bool bTime = true) {};
+
+void DebugInfo(const char* szInfo, bool bTime = true, bool bDebug = true, bool bPrint = true) {};
+void DebugInfoT(const TCHAR* szInfo, bool bTime = true, bool bDebug = true, bool bPrint = true) {};
+
+
+#endif   
+
 
 
 

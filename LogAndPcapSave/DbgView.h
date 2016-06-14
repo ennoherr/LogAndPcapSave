@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 #include <queue>
 #include <thread>
 #include <atomic>

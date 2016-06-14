@@ -52,7 +52,7 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 
 	if (hddToCheck.length() == 0)
 	{
-		TCHAR path[FILENAME_MAX] = _T("\0");
+		TCHAR path[FILENAME_MAX];
 		if (!GetCurrentDir(path, FILENAME_MAX))
 		{
 			return false;
@@ -61,6 +61,7 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 		hddToCheck = path;
 	}
 
+#ifdef _WIN32
 	if(!GetDiskFreeSpaceExW(
 		hddToCheck.c_str(),				// directory name
 		&m_uliFreeBytesAvailable,		// bytes available to caller
@@ -69,6 +70,10 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 	{
 		return false;
 	}
+#else
+        // TODO
+
+#endif
 
 	return true;
 }

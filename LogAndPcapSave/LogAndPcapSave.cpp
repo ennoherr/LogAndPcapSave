@@ -3,7 +3,11 @@
 
 #include "stdafx.h"
 
+#ifdef _WIN32
 #include <conio.h>
+#else
+#include "../conio/conio.h"
+#endif
 
 #include <queue>
 #include <iostream>
@@ -19,7 +23,6 @@
 
 #include "Files.h"
 
-#define SAFE_DELETE(p) {if (p) {delete p; p = NULL;}}
 
 // global
 settings set;
@@ -59,8 +62,12 @@ int closeProcesses(void)
 {
 	int res = 0;
 	processes proc;
-	
+
+#ifdef _WIN32	
 	for each (std::string p in set.getProcRunningList())
+#else
+        for (auto p : set.getProcRunningList())
+#endif
 	{
 		if (proc.isProcessRunning(p))
 		{

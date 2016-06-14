@@ -1,7 +1,10 @@
 #include "stdafx.h"
 
+#ifdef _WIN32
 #include <windows.h>
 #include <process.h>
+#endif
+
 #include <assert.h>
 
 #include <algorithm>
@@ -45,7 +48,7 @@ DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
 	, isThreadRunning(false)
 	, data(NULL)
 	, mtx(NULL)
-	, readyEvent(NULL)
+	, readyEvent(0)
 {
 	data = dataInOut;
 	mtx = mtxInOut;
@@ -111,21 +114,22 @@ int DbgView::Stop(void)
 
 	if (worker.joinable())
 	{
-		assert(readyEvent != INVALID_HANDLE_VALUE);
-		SetEvent(readyEvent);
+#ifdef _WIN32
+            assert(readyEvent != INVALID_HANDLE_VALUE);
+            SetEvent(readyEvent);
+#endif
+            SAFE_HANDLE(readyEvent);
 
-		SAFE_HANDLE(readyEvent);
-
-		isThreadRunning = false;
-		worker.join();
+            isThreadRunning = false;
+            worker.join();
 		
-		dbgtprintf(_T("DbgView::Stop STATUS: thread stopped"));
+            dbgtprintf(_T("DbgView::Stop STATUS: thread stopped"));
 	}
 	else
 	{
-		res = 1;
+            res = 1;
 
-		dbgtprintf(_T("DbgView::Stop WARNING: thread not running."));
+            dbgtprintf(_T("DbgView::Stop WARNING: thread not running."));
 	}
 
 	return res;
@@ -152,6 +156,8 @@ void DbgView::EventThreadRoutine(void)
 
 	unsigned int res = 0;
 	std::string temp = "";
+        
+#ifdef _WIN32        
 	HANDLE hAckEvent = INVALID_HANDLE_VALUE;
 	HANDLE SharedFile = INVALID_HANDLE_VALUE;
 	DBG_BUFFER* pDB = NULL;
@@ -268,6 +274,7 @@ void DbgView::EventThreadRoutine(void)
 
 
 	dbgtprintf(_T("DbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), worker.get_id());
+#endif
 	
 	// in case thread has exited for other reasons
 	isThreadRunning = false;

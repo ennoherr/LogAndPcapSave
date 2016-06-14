@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <data xmlns="http://www.netbeans.org/ns/make-project-private/1">
+        <activeConfTypeElem>1</activeConfTypeElem>
+        <activeConfIndexElem>0</activeConfIndexElem>
+    </data>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/LogData.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/dbgprint.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/DbgView.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/HddMgmt.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/DbgView.cpp</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/stdafx.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/UniConvert.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/HddMgmt.cpp</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/NetCapture.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/conio/conio.h</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/LogAndPcapSave.cpp</file>
+        </group>
+    </open-files>
+</project-private>
