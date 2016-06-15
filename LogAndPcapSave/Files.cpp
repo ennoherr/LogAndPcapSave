@@ -10,10 +10,11 @@
 
 #include "Files.h"
 
-using namespace std;
 
 FileMgmt::FileMgmt(TimeInfo *tiInOut)
 	: ti(NULL)
+	//, initNewFile(true)
+	, filename("")
 {
 	ti = tiInOut;
 }
@@ -23,7 +24,7 @@ FileMgmt::~FileMgmt(void)
 {
 }
 
-int FileMgmt::writeToFile(std::string fname, std::string line, std::string interval, bool append)
+int FileMgmt::writeToFile(std::string fname, std::string line, std::string interval)
 {
 	if (ti == NULL || fname.length() == 0 || line.length() == 0)
 	{
@@ -31,7 +32,7 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 	}
 
 	int res = 0;
-	std::string logfile = "";
+	//std::string logfile = "";
 	bool newFile = false;
 
 	transform(interval.begin(), interval.end(), interval.begin(), ::toupper);
@@ -48,19 +49,26 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 	{
 		newFile = ti->isNewDay();
 	}
-	
-	// necessary to create a new file
-	if (newFile)
+
+	// first time start a file has to be created
+	//if (initNewFile)
+	//{
+	//	newFile = true;
+	//	initNewFile = false;
+	//}
+
+	// create a new filename
+	if (newFile || filename.length() == 0)
 	{
-		logfile = fname + "_" + ti->getTimeReadableMs("_", "-", "-") + ".log";
+		filename = fname + "_" + ti->getTimeReadableMs("_", "-", "-") + ".log";
 	}
 	
-	ios_base::openmode om = (append) ? (ios_base::out | ios_base::app) : (ios_base::out);
-	ofstream ofs(logfile, om);
+	std::ios_base::openmode om = (newFile) ? (std::ios_base::out) : (std::ios_base::out | std::ios_base::app);
+	std::ofstream ofs(filename, om);
 
 	if (ofs.is_open())
 	{
-		ofs << line << endl;
+		ofs << line << std::endl;
 		ofs.close();
 	}
 	else
@@ -72,3 +80,4 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 
 	return res;
 }
+

@@ -41,7 +41,7 @@ int Search::startThread(NetCapture *netCap, std::queue<DbgData> &data, std::mute
 
 	int res = 0;
 
-	// todo - convert to lamda, since microsoft threads cannot proceed so many params
+	// converted to lamda, since microsoft threads cannot proceed so many params - 16-05-14
 	//if (res == 0) worker = std::thread(&Search::searchData, this, netCap, data, mtxData, filename, interval, find);
 	if (res == 0) worker = std::thread([&]() { searchData(netCap, data, mtxData, filename, interval, find); });
 
