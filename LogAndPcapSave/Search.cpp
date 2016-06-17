@@ -91,12 +91,9 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex
 	}
 
 	int res = 0;
-
 	std::string line = "";
-
-	TimeInfo *ti = new TimeInfo();
-	FileMgmt *allData = new FileMgmt(ti);
-	FileMgmt *filterData = new FileMgmt(ti);
+	FileMgmt *allData = new FileMgmt();
+	FileMgmt *filterData = new FileMgmt();
 
 	while (isThreadRunning)
 	{
@@ -125,8 +122,6 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex
 
 	SAFE_DELETE(filterData);
 	SAFE_DELETE(allData);
-	SAFE_DELETE(ti);
-
 
 	return res;
 }

@@ -10,29 +10,33 @@
 
 #include "Files.h"
 
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(p) {if (p) {delete(p); p = NULL;}}
+#endif
 
-FileMgmt::FileMgmt(TimeInfo *tiInOut)
+
+FileMgmt::FileMgmt(void)
 	: ti(NULL)
-	//, initNewFile(true)
 	, filename("")
 {
-	ti = tiInOut;
+	ti = new TimeInfo();
 }
 
 
 FileMgmt::~FileMgmt(void)
 {
+	SAFE_DELETE(ti);
 }
 
 int FileMgmt::writeToFile(std::string fname, std::string line, std::string interval)
 {
-	if (ti == NULL || fname.length() == 0 || line.length() == 0)
+	if (fname.length() == 0 || line.length() == 0 || interval.length() == 0)
 	{
+		dbgprintf("FileMgmt::writeToFile ERROR: fname = \'%s\', line = \'%s\' or interval = \'%s\' have length zero!", fname, line, interval);
 		return -1;
 	}
 
 	int res = 0;
-	//std::string logfile = "";
 	bool newFile = false;
 
 	transform(interval.begin(), interval.end(), interval.begin(), ::toupper);
@@ -50,13 +54,6 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 		newFile = ti->isNewDay();
 	}
 
-	// first time start a file has to be created
-	//if (initNewFile)
-	//{
-	//	newFile = true;
-	//	initNewFile = false;
-	//}
-
 	// create a new filename
 	if (newFile || filename.length() == 0)
 	{
@@ -73,8 +70,7 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 	}
 	else
 	{
-		UniConvert uc;
-		dbgtprintf(_T("CFiles::WriteToFile ERROR: Unable to open file \'%s\'"), uc.s2ts(fname).c_str());
+		dbgprintf("FileMgmt::writeToFile ERROR: Unable to open file \'%s\'", filename.c_str());
 		res = 1;
 	}
 

@@ -13,7 +13,7 @@ using namespace std;
 
 
 settings::settings(void)
-	: version("1.0.0.2 - Build 2016-06-13")
+	: version("1.0.0.4 - Build 2016-06-17")
 	, fname("out")
 	, find("")
 	, logfileInterval("day")
