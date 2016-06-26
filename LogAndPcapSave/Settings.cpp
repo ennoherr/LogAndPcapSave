@@ -1,6 +1,8 @@
 #include "stdafx.h"
 
 #include <string>
+#include <vector>
+#include <algorithm>
 #include <iostream>
 
 #include "dbgprint.h"
@@ -8,8 +10,6 @@
 #include "NetCapture.h"
 
 #include "Settings.h"
-
-using namespace std;
 
 
 settings::settings(void)
@@ -28,86 +28,99 @@ settings::~settings(void)
 {
 }
 
-int settings::processCmdLineArgs(TCHAR** szArglist, int iArgs)
+int settings::processCmdLineArgs(TCHAR** argv, int argc)
 {
-	if(!szArglist)
+	if(!argv)
 	{
 		return -1;
 	}
 
-	int i = 0;
+	unsigned int i = 0;
+        std::vector<tstring> args;
 	UniConvert uc;
 
-	for (i = 0; i < iArgs; i++)
+        // copy argv values to vector, makes life easier...
+	for (i = 0; i < argc; i++)
 	{
-		dbgtprintf(_T("argv[%i] = %s"), i, szArglist[i]);
+                args.push_back(argv[i]);
+        }
+        
+        // just debug output
+        for (i = 0; i < args.size(); i++)
+        {
+		dbgtprintf(_T("args[%d] = \'%s\'"), i, args.at(i).c_str());
 	}
 
-	for (i = 0; i < iArgs; i++)
+        // parse values 
+	for (i = 0; i < args.size(); i++)
 	{
-		if (_tcsicmp(szArglist[i], _T("-l")) == 0) // list interfaces
+                // compare to capitalized params
+                tstring argCap = args.at(i);
+                std::transform(argCap.begin(), argCap.end(), argCap.begin(), ::toupper);
+            
+		if (argCap == _T("-L")) // list interfaces
 		{
 			printNicList();
 			
 			// we can exit the loop here
 			break;
 		}
-		if (_tcsicmp(szArglist[i], _T("-i") ) == 0 ) // use interface number
+		if (argCap == _T("-I")) // use interface number
 		{
-			if (_tcslen(szArglist[++i]) > 0)
+			if (args.at(i+1).length() > 0)
 			{
-				nicToUse = _ttoi(szArglist[i]);
+				nicToUse = uc.ts2int(args.at(i+1));
 				nicIsSet = true;
 			}
 		}
-		if (_tcsicmp(szArglist[i], _T("-o")) == 0) // output filename
+		if (argCap == _T("-O")) // output filename
 		{
-			if (_tcslen(szArglist[++i]) > 0)
+			if (args.at(i+1).length() > 0)
 			{
-				fname = uc.ts2s(szArglist[i]);
+				fname = uc.ts2s(args.at(i+1));
 			}
 		}
-		if (_tcsicmp(szArglist[i], _T("-oi")) == 0) // new log interval
+		if (argCap == _T("-OI")) // new log interval
 		{
-			if (_tcslen(szArglist[++i]) > 0)
+			if (args.at(i+1).length() > 0)
 			{
-				logfileInterval = uc.ts2s(szArglist[i]);
+				logfileInterval = uc.ts2s(args.at(i+1));
 			}
 		}
-		if (_tcsicmp(szArglist[i], _T("-f")) == 0) // string to find
+		if (argCap == _T("-F")) // string to find
 		{
-			if (_tcslen(szArglist[++i]) > 0)
+			if (args.at(i+1).length() > 0)
 			{
-				find = uc.ts2s(szArglist[i]);
+				find = uc.ts2s(args.at(i+1));
 			}
 		}
-		if (_tcsicmp(szArglist[i], _T("-pcapmax")) == 0) // string to find
+		if (argCap == _T("-PCAPMAX")) // string to find
 		{
-			if (_tcslen(szArglist[++i]) > 0)
+			if (args.at(i+1).length() > 0)
 			{
-				pcapMaxSize = _ttoi(szArglist[i]);
+				pcapMaxSize = uc.ts2int(args.at(i+1));
 			}
 		}
 		
 
 		if ( 
-			_tcsicmp(szArglist[i], _T("-?")) == 0 ||
-			_tcsicmp(szArglist[i], _T("/?")) == 0 ||
-			_tcsicmp(szArglist[i], _T("-h")) == 0 ||
-			_tcsicmp(szArglist[i], _T("/h")) == 0
+			argCap == _T("-?") ||
+			argCap == _T("/?") ||
+			argCap == _T("-h") ||
+			argCap == _T("/h")
 			) // display help message
 		{
-			cout << "Usage: " << endl;
-			cout << "-l :: List all NICs" << endl;
-			cout << "-i <num> :: number of NIC to be captured, default = 1" << endl;
-			cout << "-o <string> :: prefix for output files, default = out" << endl;
-			cout << "-oi <string> :: interval for log file, values = none, hour, day, default = day" << endl;
-			cout << "-f <string> :: string to search (if empty only debug output to file, dump will be deleted), default = \"\"" << endl;
-			cout << "-pcapmax <int> :: max size of pcap file [in MB], default = 100" << endl;
-			cout << endl;
+			std::cout << "Usage: " << std::endl;
+			std::cout << "-l :: List all NICs" << std::endl;
+			std::cout << "-i <num> :: number of NIC to be captured, default = 1" << std::endl;
+			std::cout << "-o <string> :: prefix for output files, default = out" << std::endl;
+			std::cout << "-oi <string> :: interval for log file, values = none, hour, day, default = day" << std::endl;
+			std::cout << "-f <string> :: string to search (if empty only debug output to file, dump will be deleted), default = \"\"" << std::endl;
+			std::cout << "-pcapmax <int> :: max size of pcap file [in MB], default = 100" << std::endl;
+			std::cout << std::endl;
 
-			cout << "Usage example: LogVsPcapTracer -f error" << endl;
-			cout << endl;
+			std::cout << "Usage example: LogVsPcapTracer -f error" << std::endl;
+			std::cout << std::endl;
 			
 			// we can exit the loop here
 			break;
@@ -127,22 +140,22 @@ int settings::loadIniFile(void)
 	return res;
 }
 
-string settings::getVersion(void)
+std::string settings::getVersion(void)
 {
 	return version;
 }
 
-string settings::getFilename(void)
+std::string settings::getFilename(void)
 {
 	return fname;
 }
 
-string settings::getFind(void)
+std::string settings::getFind(void)
 {
 	return find;
 }
 
-string settings::getLogInterval(void)
+std::string settings::getLogInterval(void)
 {
 	return logfileInterval;
 }
@@ -181,7 +194,7 @@ void settings::printNicList(void)
 	
 	for (unsigned i = 0; i < adapters.size(); i++)
 	{
-		cout << to_string(i + 1) << " - " << adapters.at(i) << endl;
+		std::cout << std::to_string(i + 1) << " - " << adapters.at(i) << std::endl;
 	}
 }
 

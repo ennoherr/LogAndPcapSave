@@ -6,6 +6,7 @@
 #ifdef _WIN32
 #include <conio.h>
 #else
+#include "fcntl.h"
 #include "../conio/conio.h"
 #endif
 
@@ -32,6 +33,11 @@ settings set;
 NetCapture *netCap = NULL;
 DbgView *logCap = NULL;
 Search *s = NULL;
+
+ssize_t ngetc(char *c)
+{
+    return read(0, c, 1);
+}
 
 int loadConfig(int argc, TCHAR** argv)
 {
@@ -177,6 +183,11 @@ int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+#ifdef _WIN32
+#else
+        fcntl (0, F_SETFL, O_NONBLOCK);
+#endif
+    
 	bool exit = false;
 	int res = 0;
 	std::queue<DbgData> data;
@@ -203,7 +214,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		while (res == 0 && _kbhit())
 		{
+#ifdef _WIN32
 			if (_gettch_nolock() == 'q') exit = true;
+#else
+                        char *in = NULL; // = 0;
+                        size_t t = ngetc(in);
+                        if (t > 0 && strchr(in, 'q') == 0) exit = true;
+#endif
 		}
 
 		res = checkHddSpace();

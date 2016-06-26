@@ -49,11 +49,19 @@ int NetCapture::initInterfaces(void)
 		res = 1;
 	}
 
+#ifdef _WIN32
 	if (res == 0 && pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &interfaces, errbuf) == -1)
 	{
 		dbgtprintf(_T("NetCapture::InitInterfaces ERROR: pcap_findalldevs_ex(...) returned with error msg - \'%s\'"), errbuf);
 		res = 2;
 	}
+#else
+	if (res == 0 && pcap_findalldevs(&interfaces, errbuf) == -1)
+	{
+		dbgtprintf(_T("NetCapture::InitInterfaces ERROR: pcap_findalldevs(...) returned with error msg - \'%s\'"), errbuf);
+		res = 2;
+	}
+#endif
 
 	if (res == 0)
 	{
@@ -217,11 +225,19 @@ int NetCapture::setInterface(const unsigned Interface)
 	// Jump to the selected adapter
 	if (res == 0) for (iface = interfaces, i = 0; i < Interface-1; iface = iface->next, i++);
 
+#ifdef _WIN32
 	if (res == 0 && ((selectedIf = pcap_open(iface->name, 100, PCAP_OPENFLAG_PROMISCUOUS, 20, NULL, errbuf)) == NULL))
 	{
 		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open(...) returned with error msg = \'%s\'."), errbuf);
 		res = 2;
 	}
+#else
+	if (res == 0 && ((selectedIf = pcap_open_live(iface->name, 100, 0, -1, errbuf)) == NULL))
+	{
+		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open_life(...) returned with error msg = \'%s\'."), errbuf);
+		res = 2;
+	}
+#endif
 
 	return res;
 }
