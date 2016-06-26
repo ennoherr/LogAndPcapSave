@@ -151,7 +151,7 @@ void DbgView::EventThreadRoutine(void)
 	for (int i = 0; i < 32; i++)
 	{
 		if (isThreadRunning) break;
-		else Sleep(100);
+		else std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
 	unsigned int res = 0;
@@ -266,7 +266,7 @@ void DbgView::EventThreadRoutine(void)
 			dbgtprintf(_T("DbgView::EventThreadRoutine ERROR: An error occured, res = %d, ErrorCode = %d"), res, GetLastError());
 			
 			// wait 10 sec before restarting the loop
-			Sleep(10*1000);
+			std::this_thread::sleep_for(std::chrono::milliseconds(10*1000));
 			res = 0;
 		}
 

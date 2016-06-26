@@ -13,7 +13,7 @@ using namespace std;
 
 
 settings::settings(void)
-	: version("1.0.0.0 - Build 2016-05-24")
+	: version("1.0.0.4 - Build 2016-06-17")
 	, fname("out")
 	, find("")
 	, logfileInterval("day")
@@ -57,6 +57,7 @@ int settings::processCmdLineArgs(TCHAR** szArglist, int iArgs)
 			if (_tcslen(szArglist[++i]) > 0)
 			{
 				nicToUse = _ttoi(szArglist[i]);
+				nicIsSet = true;
 			}
 		}
 		if (_tcsicmp(szArglist[i], _T("-o")) == 0) // output filename
@@ -164,6 +165,11 @@ int settings::getNicCount(void)
 {
 	NetCapture nc;
 	return nc.getInterfacesCount();
+}
+
+bool settings::getNicIsSet(void)
+{
+	return nicIsSet;
 }
 
 

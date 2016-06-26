@@ -6,12 +6,13 @@
 class FileMgmt
 {
 public:
-	FileMgmt(TimeInfo *tiInOut);
+	FileMgmt(void);
 	~FileMgmt(void);
 
-	int writeToFile(std::string fname, std::string line, std::string interval = "none", bool append = true);
+	int writeToFile(std::string fname, std::string line, std::string interval);
 
 private:
 	TimeInfo *ti;
+	std::string filename;
 };
 

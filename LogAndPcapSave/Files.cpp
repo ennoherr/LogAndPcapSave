@@ -10,28 +10,33 @@
 
 #include "Files.h"
 
-using namespace std;
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(p) {if (p) {delete(p); p = NULL;}}
+#endif
 
-FileMgmt::FileMgmt(TimeInfo *tiInOut)
+
+FileMgmt::FileMgmt(void)
 	: ti(NULL)
+	, filename("")
 {
-	ti = tiInOut;
+	ti = new TimeInfo();
 }
 
 
 FileMgmt::~FileMgmt(void)
 {
+	SAFE_DELETE(ti);
 }
 
-int FileMgmt::writeToFile(std::string fname, std::string line, std::string interval, bool append)
+int FileMgmt::writeToFile(std::string fname, std::string line, std::string interval)
 {
-	if (ti == NULL || fname.length() == 0 || line.length() == 0)
+	if (fname.length() == 0 || line.length() == 0 || interval.length() == 0)
 	{
+		dbgprintf("FileMgmt::writeToFile ERROR: fname = \'%s\', line = \'%s\' or interval = \'%s\' have length zero!", fname, line, interval);
 		return -1;
 	}
 
 	int res = 0;
-	std::string logfile = "";
 	bool newFile = false;
 
 	transform(interval.begin(), interval.end(), interval.begin(), ::toupper);
@@ -48,27 +53,27 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 	{
 		newFile = ti->isNewDay();
 	}
-	
-	// necessary to create a new file
-	if (newFile)
+
+	// create a new filename
+	if (newFile || filename.length() == 0)
 	{
-		logfile = fname + "_" + ti->getTimeReadableMs("_", "-", "-") + ".log";
+		filename = fname + "_" + ti->getTimeReadableMs("_", "-", "-") + ".log";
 	}
 	
-	ios_base::openmode om = (append) ? (ios_base::out | ios_base::app) : (ios_base::out);
-	ofstream ofs(logfile, om);
+	std::ios_base::openmode om = (newFile) ? (std::ios_base::out) : (std::ios_base::out | std::ios_base::app);
+	std::ofstream ofs(filename, om);
 
 	if (ofs.is_open())
 	{
-		ofs << line << endl;
+		ofs << line << std::endl;
 		ofs.close();
 	}
 	else
 	{
-		UniConvert uc;
-		dbgtprintf(_T("CFiles::WriteToFile ERROR: Unable to open file \'%s\'"), uc.s2ts(fname).c_str());
+		dbgprintf("FileMgmt::writeToFile ERROR: Unable to open file \'%s\'", filename.c_str());
 		res = 1;
 	}
 
 	return res;
 }
+

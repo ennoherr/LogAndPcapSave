@@ -10,6 +10,7 @@
 #include <thread>
 #include <atomic>
 #include <fstream>
+#include <chrono>
 
 #include <stdio.h>
 
@@ -231,7 +232,7 @@ int NetCapture::writeDump(std::string fname, long long fMaxSizeMbyte)
 	for (int i = 0; i < 32; i++)
 	{
 		if (isThreadRunning) break;
-		else Sleep(100);
+		else std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	
 	int res = 0;
@@ -273,7 +274,7 @@ int NetCapture::writeDump(std::string fname, long long fMaxSizeMbyte)
 				// timeout
 				if(iWrite == 0)
 				{
-					Sleep(1);
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 					continue;
 				}
 

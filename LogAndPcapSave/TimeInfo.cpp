@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include <sys/timeb.h>
+#include <iostream>
 #include <string>
 #include <ctime>
 #include <chrono>
@@ -10,8 +11,8 @@
 
 
 TimeInfo::TimeInfo(void)
-	: savedDay(NULL)
-	, savedHour(NULL)
+	: savedDay(0)
+	, savedHour(0)
 {
 }
 
@@ -47,14 +48,24 @@ std::string TimeInfo::getTimeReadable(std::string DateTimeSep, std::string TimeS
 	char time_sec[l] = "";
 
 	time_t t = time(0);
-	tm tm = { 0 };
 
+#ifdef _WIN32
+	tm tm = { 0 };
 	localtime_s(&tm, &t);
 	//strftime(wc, l-1, L"%Y-%m-%d;%H:%M:%S", &tm);
 	strftime(date, l - 1, "%Y-%m-%d", &tm);
 	strftime(time_hour, l - 1, "%H", &tm);
 	strftime(time_min, l - 1, "%M", &tm);
 	strftime(time_sec, l - 1, "%S", &tm);
+
+#else
+        struct tm *tm;
+        tm = localtime(&t);
+	strftime(date, l - 1, "%Y-%m-%d", tm);
+	strftime(time_hour, l - 1, "%H", tm);
+	strftime(time_min, l - 1, "%M", tm);
+	strftime(time_sec, l - 1, "%S", tm);
+#endif
 
 	res = date + DateTimeSep + time_hour + TimeSep + time_min + TimeSep + time_sec;
 	
@@ -72,6 +83,8 @@ std::wstring TimeInfo::getTimeReadableW(std::wstring DateTimeSep, std::wstring T
 	wchar_t wc_time_sec[l] = L"\0";
 
 	time_t t = time(0);
+        
+#ifdef _WIN32
 	tm tm = { 0 };
 
 	localtime_s(&tm, &t);
@@ -80,7 +93,17 @@ std::wstring TimeInfo::getTimeReadableW(std::wstring DateTimeSep, std::wstring T
 	wcsftime(wc_time_hour, l-1, L"%H", &tm);
 	wcsftime(wc_time_min, l-1, L"%M", &tm);
 	wcsftime(wc_time_sec, l-1, L"%S", &tm);
-	
+#else
+       	struct tm *tm;
+
+	tm = localtime(&t);
+	//wcsftime(wc, l-1, L"%Y-%m-%d;%H:%M:%S", &tm);
+	wcsftime(wc_date, l-1, L"%Y-%m-%d", tm);
+	wcsftime(wc_time_hour, l-1, L"%H", tm);
+	wcsftime(wc_time_min, l-1, L"%M", tm);
+	wcsftime(wc_time_sec, l-1, L"%S", tm);
+
+#endif	
 	res = wc_date + DateTimeSep + wc_time_hour + TimeSep + wc_time_min + TimeSep + wc_time_sec;
 
 	return res;
@@ -90,14 +113,20 @@ std::string TimeInfo::getTimeReadableMs(std::string DateTimeSep, std::string Tim
 {
 	std::string res = "";
 	std::string msec = "";
-	struct _timeb t = { 0 };
-	
-	_ftime_s(&t);
 
+#ifdef _WIN32
+	struct _timeb t = { 0 };
+	_ftime_s(&t);
+        
 	msec = std::to_string(t.millitm);
 	if (msec.length() == 1) msec = "00" + msec;
 	if (msec.length() == 2) msec = "0" + msec;
-
+#else
+        auto t = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> fp_ms = t.time_since_epoch();
+        std::cout << std::to_string(fp_ms.count()) << std::endl;
+#endif
+        
 	res = getTimeReadable(DateTimeSep, TimeSep) + MSecSep + msec;
 
 	return res;
@@ -107,14 +136,18 @@ std::wstring TimeInfo::getTimeReadableMsW(std::wstring DateTimeSep, std::wstring
 {
 	std::wstring res = L"";
 	std::wstring msec = L"";
+        
+#ifdef _WIN32
 	struct _timeb t = { 0 };
-
 	_ftime_s(&t);
 
 	msec = std::to_wstring(t.millitm);
 	if (msec.length() == 1) msec = L"00" + msec;
 	if (msec.length() == 2) msec = L"0" + msec;
-
+#else
+        // todo
+#endif 
+        
 	res = getTimeReadableW(DateTimeSep, TimeSep) + MSecSep + msec;
 
 	return res;
@@ -126,20 +159,33 @@ bool TimeInfo::isNewDay(void)
 	bool bRet = false;
 
 	// init
-	if (savedDay == NULL)
+	if (savedDay == 0)
 	{
 		savedDay = time(0);
 	}
 
 	time_t nowTime = time(0);
+        
+#ifdef _WIN32
 	tm tmSave = { 0 };
 	tm tmNow = { 0 };
 
 	localtime_s(&tmSave, &savedDay);
 	localtime_s(&tmNow, &nowTime);
-	int saved = tmSave.tm_yday;
-	int now = tmNow.tm_yday;
+        
+	int saved = tmSave.tm_hour;
+	int now = tmNow.tm_hour;
+#else
+	struct tm *tmSave;
+	struct tm *tmNow;
 
+	tmSave = localtime(&savedDay);
+	tmNow = localtime(&nowTime);
+
+	int saved = tmSave->tm_yday;
+	int now = tmNow->tm_yday;
+#endif
+        
 	savedDay = nowTime;
 
 	if (saved != now)
@@ -155,12 +201,14 @@ bool TimeInfo::isNewHour(void)
 	bool bRet = false;
 
 	// init
-	if (savedHour == NULL)
+	if (savedHour == 0)
 	{
 		savedHour = time(0);
 	}
 
 	time_t nowTime = time(0);
+        
+#ifdef _WIN32
 	tm tmSave = { 0 };
 	tm tmNow = { 0 };
 
@@ -169,6 +217,17 @@ bool TimeInfo::isNewHour(void)
 
 	int saved = tmSave.tm_hour;
 	int now = tmNow.tm_hour;
+#else
+	struct tm *tmSave;
+	struct tm *tmNow;
+
+	tmSave = localtime(&savedHour);
+	tmNow = localtime(&nowTime);
+        
+        int saved = tmSave->tm_hour;
+	int now = tmNow->tm_hour;
+#endif        
+
 
 	savedHour = nowTime;
 

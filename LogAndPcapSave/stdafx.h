@@ -77,16 +77,22 @@ typedef union _ULARGE_INTEGER {
 
 #define _kbhit kbhit
 #define GetLastError() -1
-#define Sleep usleep
 
 #ifdef UNICODE
 #define _T (const wchar_t*)
 #define TCHAR wchar_t
 #define LPCTSTR const wchar_t*
+#define _tcsicmp wcsicmp
+
+#define _tmain wmain
+
 #else
 #define _T (const char*)
 #define TCHAR char
 #define LPCTSTR const char*
+#define _tcsicmp stricmp
+
+#define _tmain main
 
 #endif
 #endif

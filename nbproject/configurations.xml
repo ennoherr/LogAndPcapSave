@@ -22,6 +22,7 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+      <itemPath>LogAndPcapSave/LogAndPcapSave.rc</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -50,7 +51,6 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
-    <itemPath>LogAndPcapSave/LogAndPcapSave.rc</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -62,11 +62,15 @@
       </toolsSet>
       <compileType>
         <ccTool>
-          <standard>11</standard>
-          <incDir>
-            <pElem>WpdPack/Include</pElem>
-          </incDir>
+          <standard>8</standard>
         </ccTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>pcap</linkerLibLibItem>
+            <linkerLibLibItem>ncurses</linkerLibLibItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
       <item path="LogAndPcapSave/DbgView.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -136,9 +140,6 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <standard>8</standard>
-          <incDir>
-            <pElem>WpdPack/Include</pElem>
-          </incDir>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -146,6 +147,13 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>pcap</linkerLibLibItem>
+            <linkerLibLibItem>ncurses</linkerLibLibItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
       <item path="LogAndPcapSave/DbgView.cpp" ex="false" tool="1" flavor2="0">
       </item>
