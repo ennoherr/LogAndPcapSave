@@ -31,13 +31,19 @@
 
 
 hddMgmt::hddMgmt(void)
-{
+#ifdef _WIN32
 	// bytes available to caller
-	m_uliFreeBytesAvailable.QuadPart     = 0L;
+	: m_uliFreeBytesAvailable.QuadPart(0L)
 	// bytes on disk
-	m_uliTotalNumberOfBytes.QuadPart     = 0L;
+	, m_uliTotalNumberOfBytes.QuadPart(0L)
 	// free bytes on disk
-	m_uliTotalNumberOfFreeBytes.QuadPart = 0L;
+	, m_uliTotalNumberOfFreeBytes.QuadPart(0L)
+#else
+        : freeBytes(0)
+        , totalBytes(0)
+        , totalFreeBytes(0)
+#endif
+{
 }
 
 
@@ -72,6 +78,10 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 	}
 #else
         // TODO
+        __int64 temp = 1024 * 1024 * 1024 *1024;
+        freeBytes = temp;
+        totalBytes = temp;
+        totalFreeBytes = temp;
 
 #endif
 
@@ -80,17 +90,32 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 
 __int64 hddMgmt::getFreeBytesAvailable(void)
 { 
+#if _WIN32
 	return m_uliFreeBytesAvailable.QuadPart;
+#else
+        return freeBytes;
+#endif
+
 }
 
 __int64 hddMgmt::getTotalNumberOfBytes(void)
 { 
-	return m_uliTotalNumberOfBytes.QuadPart;
+#if _WIN32
+        return m_uliTotalNumberOfBytes.QuadPart;
+#else
+        return totalBytes;
+#endif
+	
 }
 
 __int64 hddMgmt::getTotalNumberOfFreeBytes(void)
 { 
+#if _WIN32
 	return m_uliTotalNumberOfFreeBytes.QuadPart;
+#else
+        return totalFreeBytes;
+#endif
+
 }
 
 __int64 hddMgmt::getFreeMBytesAvailable(void)
@@ -110,17 +135,17 @@ __int64 hddMgmt::getTotalNumberOfFreeMBytes(void)
 
 double hddMgmt::getFreeGBytesAvailable(void)
 { 
-	return (double)( (signed __int64)(m_uliFreeBytesAvailable.QuadPart)/1.0e9 );
+	return (double)( (signed __int64)(getFreeBytesAvailable())/1.0e9 );
 }
 
 double hddMgmt::getTotalNumberOfGBytes(void)
 { 
-	return (double)( (signed __int64)(m_uliTotalNumberOfBytes.QuadPart)/1.0e9 );     
+	return (double)( (signed __int64)(getTotalNumberOfBytes())/1.0e9 );     
 }
 
 double hddMgmt::getTotalNumberOfFreeGBytes(void)
 { 
-	return (double)( (signed __int64)(m_uliTotalNumberOfFreeBytes.QuadPart)/1.0e9 ); 
+	return (double)( (signed __int64)(getTotalNumberOfFreeBytes())/1.0e9 ); 
 }
 
 

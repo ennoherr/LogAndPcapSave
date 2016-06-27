@@ -31,7 +31,7 @@ Search::~Search(void)
 {
 }
 
-int Search::startThread(NetCapture *netCap, std::queue<DbgData> &data, std::mutex &mtxData, std::string filename, std::string interval, std::string find)
+int Search::startThread(NetCapture *netCap, std::queue<DbgData> *data, std::mutex *mtxData, std::string filename, std::string interval, std::string find)
 {
 	if (isThreadRunning)
 	{
@@ -42,9 +42,12 @@ int Search::startThread(NetCapture *netCap, std::queue<DbgData> &data, std::mute
 	int res = 0;
 
 	// converted to lamda, since microsoft threads cannot proceed so many params - 16-05-14
-	//if (res == 0) worker = std::thread(&Search::searchData, this, netCap, data, mtxData, filename, interval, find);
+#ifdef _WIN32
 	if (res == 0) worker = std::thread([&]() { searchData(netCap, data, mtxData, filename, interval, find); });
-
+#else
+        if (res == 0) worker = std::thread(&Search::searchData, this, netCap, data, mtxData, filename, interval, find);
+#endif
+        
 	if (worker.joinable())
 	{
 		isThreadRunning = true;
@@ -81,7 +84,7 @@ int Search::stopThread(void)
 	return res;
 }
 
-int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex &mtxData, std::string filename, std::string interval, std::string find)
+int Search::searchData(NetCapture *netCap, std::queue<DbgData> *data, std::mutex *mtxData, std::string filename, std::string interval, std::string find)
 {
 	// startup delay
 	for (int i = 0; i < 32; i++)
@@ -97,11 +100,13 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex
 
 	while (isThreadRunning)
 	{
-		mtxData.lock();
-		if (data.size() > 0)
+		if (data->size() > 0)
 		{
-			DbgData dd = data.front();
-			data.pop();
+                        mtxData->lock();
+			DbgData dd = data->front();
+			data->pop();
+                        mtxData->unlock();
+                        
 			line = std::to_string(dd.timestamp_ms) + ";" + dd.time + ";" + std::to_string(dd.pid) + ";" + dd.msg;
 
 			//wcout << line << endl;
@@ -115,7 +120,7 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> &data, std::mutex
 				netCap->safeCurrentDump();
 			}
 		}
-		mtxData.unlock();
+		
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
@@ -132,8 +137,8 @@ bool Search::isInString(std::string hay, std::string needle)
 
 	if (hay.length() > 0 && needle.length() > 0)
 	{
-		transform(hay.begin(), hay.end(), hay.begin(), ::toupper);
-		transform(needle.begin(), needle.end(), needle.begin(), ::toupper);
+		std::transform(hay.begin(), hay.end(), hay.begin(), ::toupper);
+		std::transform(needle.begin(), needle.end(), needle.begin(), ::toupper);
 
 		size_t found = hay.find(needle);
 		if (found != std::string::npos)

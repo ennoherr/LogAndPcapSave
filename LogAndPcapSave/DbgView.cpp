@@ -157,14 +157,14 @@ void DbgView::EventThreadRoutine(void)
 	unsigned int res = 0;
 	std::string temp = "";
         
+      	TimeInfo TI;
+        
 #ifdef _WIN32        
 	HANDLE hAckEvent = INVALID_HANDLE_VALUE;
 	HANDLE SharedFile = INVALID_HANDLE_VALUE;
 	DBG_BUFFER* pDB = NULL;
 	SECURITY_ATTRIBUTES sa = { 0 };
 	SECURITY_DESCRIPTOR sd = { 0 };
-
-	TimeInfo TI;
 
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.bInheritHandle = TRUE;
@@ -274,6 +274,25 @@ void DbgView::EventThreadRoutine(void)
 
 
 	dbgtprintf(_T("DbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), worker.get_id());
+#else
+        // TEST !!!
+            while (isThreadRunning)
+            {
+                    DbgData dd;
+                    dd.time = TI.getTimeReadableMs();
+                    dd.timestamp_ms = TI.getTimestampMs();
+                    dd.pid = 999999;
+                    temp = "This is a test of the Linux version!!!";
+                    // some strings are too long causing an std::range_error exception when converting to string
+                    if (temp.length() > 1024) temp = temp.substr(0, 1024);
+                    dd.msg = removeCRLF(temp);
+
+                    mtx->lock();
+                    data->push(dd);
+                    mtx->unlock();
+                    
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
 #endif
 	
 	// in case thread has exited for other reasons

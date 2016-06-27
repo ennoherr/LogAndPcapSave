@@ -23,8 +23,15 @@ public:
 	double getTotalNumberOfFreeGBytes(void);
 
 private:
+#ifdef _WIN32
 	ULARGE_INTEGER m_uliFreeBytesAvailable;
 	ULARGE_INTEGER m_uliTotalNumberOfBytes;
 	ULARGE_INTEGER m_uliTotalNumberOfFreeBytes;
+#else
+        __int64 freeBytes;
+        __int64 totalBytes;
+        __int64 totalFreeBytes;
+#endif
+
 };
 

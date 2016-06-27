@@ -191,7 +191,8 @@ int NetCapture::getInterfaces(std::vector<std::string> &adapters)
 	{
 		for (iface = interfaces; iface != NULL; iface = iface->next)
 		{
-			adapters.push_back(iface->description);
+			//adapters.push_back(iface->description);
+                        adapters.push_back(iface->name);
 
 			//printf("%d. %s\n    ", ++i, iface->name);
 			//if (iface->description)

@@ -51,6 +51,7 @@
 #define DWORD unsigned long
 #define ULONGLONG unsigned long long
 
+/*
 #if defined(MIDL_PASS)
 typedef struct _ULARGE_INTEGER {
 #else // MIDL_PASS
@@ -66,6 +67,7 @@ typedef union _ULARGE_INTEGER {
 #endif //MIDL_PASS
     ULONGLONG QuadPart;
 } ULARGE_INTEGER;
+*/
 
 #define BYTE int
 
@@ -85,6 +87,7 @@ typedef union _ULARGE_INTEGER {
 #define _tcsicmp wcsicmp
 
 #define _tmain wmain
+#define _tcslen wcslen
 
 #else
 #define _T (const char*)
@@ -93,6 +96,7 @@ typedef union _ULARGE_INTEGER {
 #define _tcsicmp stricmp
 
 #define _tmain main
+#define _tcslen strlen
 
 #endif
 #endif

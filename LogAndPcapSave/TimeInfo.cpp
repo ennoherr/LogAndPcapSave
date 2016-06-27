@@ -124,8 +124,9 @@ std::string TimeInfo::getTimeReadableMs(std::string DateTimeSep, std::string Tim
 #else
         auto t = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> fp_ms = t.time_since_epoch();
-        std::cout << std::to_string(fp_ms.count()) << std::endl;
+        //std::cout << std::to_string(fp_ms.count()) << std::endl;
 #endif
+        // todo convert fp_ms to msec - or find another solution
         
 	res = getTimeReadable(DateTimeSep, TimeSep) + MSecSep + msec;
 

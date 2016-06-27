@@ -10,7 +10,11 @@
 // maybe some includes necessary
 
 #include "stdafx.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 #include <time.h>
+#include <iostream>
 #include "dbgprint.h"
 
 
@@ -54,7 +58,6 @@ void DeInitDebugOut(void)
 //
 void dbgtprintf(LPCTSTR format, ...)
 {
-#ifdef _WIN32
 	if (!format)
 	{
 		return;
@@ -68,31 +71,53 @@ void dbgtprintf(LPCTSTR format, ...)
 	}
 
 	int nSize = 0;
-	TCHAR szBuffer[iLen] = _T("\0");
+	TCHAR szBuffer[iLen]; // = _T("\0");
 	va_list args;
         		
 	// get input and make an output string
 	try
 	{
 		va_start(args, format);
+#ifdef _WIN32
 		nSize = _vsntprintf_s(szBuffer, iLen-5, format, args);
+#else
+                nSize = vsprintf(szBuffer, format, args);
+#endif
 		va_end(args);
 
 		// on error - nSize should be length of string
 		if(nSize <= 0)
+                {
+#ifdef _WIN32
 			_tcscpy_s(szBuffer, _T("ERROR: Unable to process args for debug information!"));
+#else
+                        std::cout << "ERROR: Unable to process args for debug information!" << std::endl;
+#endif
+                }
 
+#ifdef _WIN32
 		_tcscat_s(szBuffer, _T("\r\n\0"));
+#else
+                // nothing to ad
+#endif
+
+
+#ifdef _WIN32
 
 		OutputDebugString(szBuffer);
+#else
+                std::cout << szBuffer << std::endl;
+#endif
+
 	}
 	catch(...)
 	{
+#ifdef _WIN32
 		OutputDebugString(_T("ERROR: Exception while processing debug information!"));
-	}
 #else
-        // todo
+                std::cout << "ERROR: Exception while processing debug information!" << std::endl;
 #endif
+	}
 }
 
 void dbgprintf(const char *format, ...)

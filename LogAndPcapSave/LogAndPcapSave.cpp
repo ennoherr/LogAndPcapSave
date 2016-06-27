@@ -7,7 +7,7 @@
 #include <conio.h>
 #else
 #include "fcntl.h"
-#include "../conio/conio.h"
+//#include "../conio/conio.h"
 #endif
 
 #include <queue>
@@ -176,7 +176,7 @@ int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
 	if (res == 0 && s == NULL)	s = new Search();
 	else res = 1;
 
-	if (res == 0)	res = s->startThread(netCap, data, mtxData, set.getFilename(), set.getLogInterval(), set.getFind());
+	if (res == 0)	res = s->startThread(netCap, &data, &mtxData, set.getFilename(), set.getLogInterval(), set.getFind());
 
 	return res;
 }
@@ -212,14 +212,19 @@ int _tmain(int argc, _TCHAR* argv[])
 	// main loop
 	while (res == 0 && !exit)
 	{
-		while (res == 0 && _kbhit())
-		{
 #ifdef _WIN32
+                while (res == 0 && _kbhit())
+		{
 			if (_gettch_nolock() == 'q') exit = true;
 #else
+                while (res == 0)
+                {
                         char *in = NULL; // = 0;
-                        size_t t = ngetc(in);
-                        if (t > 0 && strchr(in, 'q') == 0) exit = true;
+                        //size_t t = ngetc(in);
+                        if (in != NULL)
+                        {
+                            if (strchr(in, 'q') == 0) exit = true;
+                        }
 #endif
 		}
 
