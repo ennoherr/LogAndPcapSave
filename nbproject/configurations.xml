@@ -68,7 +68,6 @@
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibLibItem>pcap</linkerLibLibItem>
-            <linkerLibLibItem>ncurses</linkerLibLibItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
