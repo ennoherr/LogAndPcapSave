@@ -12,7 +12,7 @@
       <itemPath>LogAndPcapSave/Process.h</itemPath>
       <itemPath>LogAndPcapSave/Search.h</itemPath>
       <itemPath>LogAndPcapSave/Settings.h</itemPath>
-      <itemPath>Tail.h</itemPath>
+      <itemPath>LogAndPcapSave/Tail.h</itemPath>
       <itemPath>LogAndPcapSave/TimeInfo.h</itemPath>
       <itemPath>LogAndPcapSave/UniConvert.h</itemPath>
       <itemPath>conio/conio.h</itemPath>
@@ -107,6 +107,8 @@
       </item>
       <item path="LogAndPcapSave/Settings.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="LogAndPcapSave/Tail.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="LogAndPcapSave/TimeInfo.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="LogAndPcapSave/TimeInfo.h" ex="false" tool="3" flavor2="0">
@@ -126,8 +128,6 @@
       <item path="LogAndPcapSave/stdafx.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="LogAndPcapSave/targetver.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Tail.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="conio/conio.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -194,6 +194,8 @@
       </item>
       <item path="LogAndPcapSave/Settings.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="LogAndPcapSave/Tail.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="LogAndPcapSave/TimeInfo.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="LogAndPcapSave/TimeInfo.h" ex="false" tool="3" flavor2="0">
@@ -213,8 +215,6 @@
       <item path="LogAndPcapSave/stdafx.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="LogAndPcapSave/targetver.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="Tail.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="conio/conio.h" ex="false" tool="3" flavor2="0">
       </item>
