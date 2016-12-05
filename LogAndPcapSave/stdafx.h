@@ -77,7 +77,6 @@ typedef union _ULARGE_INTEGER {
 
 #define HANDLE int
 
-#define _kbhit kbhit
 #define GetLastError() -1
 
 #ifdef UNICODE

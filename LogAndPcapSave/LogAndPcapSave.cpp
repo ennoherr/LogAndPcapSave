@@ -7,7 +7,8 @@
 #include <conio.h>
 #else
 #include "fcntl.h"
-//#include "../conio/conio.h"
+#include "../conio/conio.h"
+//#include "Kbhit.h"
 #endif
 
 #include <queue>
@@ -24,20 +25,12 @@
 
 #include "Files.h"
 
-#ifndef SAFE_DELETE
-#define SAFE_DELETE(p) {if (p) {delete(p); p = NULL;}}
-#endif
-
 // global
 settings set;
 NetCapture *netCap = NULL;
 DbgView *logCap = NULL;
 Search *s = NULL;
 
-ssize_t ngetc(char *c)
-{
-    return read(0, c, 1);
-}
 
 int loadConfig(int argc, TCHAR** argv)
 {
@@ -183,11 +176,6 @@ int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-#ifdef _WIN32
-#else
-        fcntl (0, F_SETFL, O_NONBLOCK);
-#endif
-    
 	bool exit = false;
 	int res = 0;
 	std::queue<DbgData> data;
@@ -197,10 +185,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	// init
 	if (res == 0 && loadConfig(argc, argv) != 0)		res = 1;
-	if (res == 0 && multipleNic() != 0)					res = 2;
-	if (res == 0 && closeProcesses() != 0)				res = 3;
-	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
-	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
+//	if (res == 0 && multipleNic() != 0)					res = 2;
+//	if (res == 0 && closeProcesses() != 0)				res = 3;
+//	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
+//	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
 
 	if (res == 0)
 	{
@@ -212,23 +200,17 @@ int _tmain(int argc, _TCHAR* argv[])
 	// main loop
 	while (res == 0 && !exit)
 	{
-#ifdef _WIN32
+
                 while (res == 0 && _kbhit())
 		{
-			if (_gettch_nolock() == 'q') exit = true;
+#ifdef _WIN32
+                    if (_gettch_nolock() == 'q') exit = true;
 #else
-                while (res == 0)
-                {
-                        char *in = NULL; // = 0;
-                        //size_t t = ngetc(in);
-                        if (in != NULL)
-                        {
-                            if (strchr(in, 'q') == 0) exit = true;
-                        }
+                    if (getch() == 'q') exit = true;
 #endif
 		}
 
-		res = checkHddSpace();
+		//res = checkHddSpace();
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
