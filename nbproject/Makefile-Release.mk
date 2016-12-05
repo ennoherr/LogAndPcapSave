@@ -63,7 +63,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread -lpcap -lncurses
+LDLIBSOPTIONS=-lpthread -lpcap
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

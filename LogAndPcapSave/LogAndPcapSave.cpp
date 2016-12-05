@@ -71,11 +71,11 @@ int closeProcesses(void)
 	int res = 0;
 	processes proc;
 
-#ifdef _WIN32	
-	for each (std::string p in set.getProcRunningList())
-#else
+//#ifdef _WIN32	
+//	for each (std::string p in set.getProcRunningList())
+//#else
         for (auto p : set.getProcRunningList())
-#endif
+//#endif
 	{
 		if (proc.isProcessRunning(p))
 		{
@@ -185,8 +185,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	// init
 	if (res == 0 && loadConfig(argc, argv) != 0)		res = 1;
-//	if (res == 0 && multipleNic() != 0)					res = 2;
-//	if (res == 0 && closeProcesses() != 0)				res = 3;
+	if (res == 0 && multipleNic() != 0)			res = 2;
+	if (res == 0 && closeProcesses() != 0)			res = 3;
 //	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
 //	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
 
@@ -200,7 +200,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	// main loop
 	while (res == 0 && !exit)
 	{
-
                 while (res == 0 && _kbhit())
 		{
 #ifdef _WIN32
@@ -218,6 +217,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	// cleanup
 	stopAnalyze();
 	stopCapture();
+        
+        // just a new line
+        std::cout << std::endl;
 	
 	return 0;
 }

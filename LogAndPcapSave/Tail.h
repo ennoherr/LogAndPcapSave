@@ -33,7 +33,7 @@ public:
 	void OnChange()
 	{
 		// re-open to get new size, cannot be done on the fly
-		std::ifstream f(fname_.c_str());
+		std::ifstream f(fname_);
 		if (f.is_open())
 		{
 			f.seekg(0, f.end);

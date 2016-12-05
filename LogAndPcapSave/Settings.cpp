@@ -45,11 +45,12 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
                 args.push_back(argv[i]);
         }
         
-        // just debug output
+#ifdef _DEBUG
         for (i = 0; i < args.size(); i++)
         {
 		dbgtprintf(_T("args[%d] = \'%s\'"), i, args.at(i).c_str());
 	}
+#endif
 
         // parse values 
 	for (i = 0; i < args.size(); i++)
@@ -62,8 +63,8 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 		{
 			printNicList();
 			
-			// we can exit the loop here
-			break;
+			// we can exit the loop here and tell the program to exit
+			return 1;
 		}
 		if (argCap == _T("-I")) // use interface number
 		{
@@ -164,8 +165,16 @@ std::vector<std::string> settings::getProcRunningList(void)
 {
 	// todo: find a better way than hardcode it
 	std::vector<std::string> proc;
+        
+#ifdef _WIN32        
+        //proc.push_back("LogAndPcapSave.exe");
 	proc.push_back("DbgView.exe");
-
+        proc.push_back("Wireshark.exe");
+#else        
+        //proc.push_back("logandpcapsave");
+        proc.push_back("wireshark");
+#endif
+        
 	return proc;
 }
 
