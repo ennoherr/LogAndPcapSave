@@ -209,7 +209,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #endif
 		}
 
-		//res = checkHddSpace();
+		res = checkHddSpace();
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}

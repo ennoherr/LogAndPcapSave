@@ -28,9 +28,9 @@ private:
 	ULARGE_INTEGER m_uliTotalNumberOfBytes;
 	ULARGE_INTEGER m_uliTotalNumberOfFreeBytes;
 #else
-        __int64 freeBytes;
-        __int64 totalBytes;
-        __int64 totalFreeBytes;
+        __int64 freeBytes_;
+        __int64 totalBytes_;
+        __int64 totalFreeBytes_;
 #endif
 
 };

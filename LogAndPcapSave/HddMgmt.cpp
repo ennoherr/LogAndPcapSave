@@ -2,6 +2,7 @@
 
 #include "UniConvert.h"
 
+#include "dbgprint.h"
 #include <string>
 
 #ifdef _WIN32
@@ -14,6 +15,7 @@
 #endif
 #else
 #include <unistd.h>
+#include <sys/statvfs.h>
 #define GetCurrentDir getcwd
 #endif
 
@@ -39,9 +41,9 @@ hddMgmt::hddMgmt(void)
 	// free bytes on disk
 	, m_uliTotalNumberOfFreeBytes.QuadPart(0L)
 #else
-        : freeBytes(0)
-        , totalBytes(0)
-        , totalFreeBytes(0)
+        : freeBytes_(0)
+        , totalBytes_(0)
+        , totalFreeBytes_(0)
 #endif
 {
 }
@@ -77,12 +79,21 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 		return false;
 	}
 #else
-        // TODO
-        __int64 temp = 1024 * 1024 * 1024 *1024;
-        freeBytes = temp;
-        totalBytes = temp;
-        totalFreeBytes = temp;
+        struct statvfs fs;
+        if (statvfs(hddToCheck.c_str(), &fs) < 0)
+        {
+            return false;
+        }
+        
+        totalBytes_ = fs.f_bsize * fs.f_blocks;
+        freeBytes_ = fs.f_bsize * fs.f_bavail;
+        totalFreeBytes_ = fs.f_bsize * fs.f_bfree;
 
+#ifdef _DEBUG
+        //dbgtprintf(_T("totalBytes = %ld, freeBytes = %ld, totalFreeBytes = %ld"), totalBytes_, freeBytes_, totalFreeBytes_);
+        //dbgtprintf(_T("totalGBytes = %4.2f, freeGBytes = %4.2f, totalFreeGBytes = %4.2f"), getTotalNumberOfGBytes(), getFreeGBytesAvailable(), getTotalNumberOfFreeGBytes());
+#endif       
+        
 #endif
 
 	return true;
@@ -93,7 +104,7 @@ __int64 hddMgmt::getFreeBytesAvailable(void)
 #if _WIN32
 	return m_uliFreeBytesAvailable.QuadPart;
 #else
-        return freeBytes;
+        return freeBytes_;
 #endif
 
 }
@@ -103,7 +114,7 @@ __int64 hddMgmt::getTotalNumberOfBytes(void)
 #if _WIN32
         return m_uliTotalNumberOfBytes.QuadPart;
 #else
-        return totalBytes;
+        return totalBytes_;
 #endif
 	
 }
@@ -113,7 +124,7 @@ __int64 hddMgmt::getTotalNumberOfFreeBytes(void)
 #if _WIN32
 	return m_uliTotalNumberOfFreeBytes.QuadPart;
 #else
-        return totalFreeBytes;
+        return totalFreeBytes_;
 #endif
 
 }
