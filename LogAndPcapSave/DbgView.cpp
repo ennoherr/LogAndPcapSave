@@ -316,7 +316,7 @@ void DbgView::EventThreadRoutine(void)
                     // get changed data
                     tail.OnChange();
                     temp = tail.GetChangesAsString();
-                    
+                                        
                     // treat every line in temp individually
                     std::vector<std::string> v = split(temp, '\n');
                     

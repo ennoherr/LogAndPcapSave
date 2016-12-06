@@ -74,67 +74,67 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/logandpcapsave: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/logandpcapsave ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/LogAndPcapSave/DbgView.o: LogAndPcapSave/DbgView.cpp 
+${OBJECTDIR}/LogAndPcapSave/DbgView.o: LogAndPcapSave/DbgView.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/DbgView.o LogAndPcapSave/DbgView.cpp
 
-${OBJECTDIR}/LogAndPcapSave/Files.o: LogAndPcapSave/Files.cpp 
+${OBJECTDIR}/LogAndPcapSave/Files.o: LogAndPcapSave/Files.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/Files.o LogAndPcapSave/Files.cpp
 
-${OBJECTDIR}/LogAndPcapSave/HddMgmt.o: LogAndPcapSave/HddMgmt.cpp 
+${OBJECTDIR}/LogAndPcapSave/HddMgmt.o: LogAndPcapSave/HddMgmt.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/HddMgmt.o LogAndPcapSave/HddMgmt.cpp
 
-${OBJECTDIR}/LogAndPcapSave/LogAndPcapSave.o: LogAndPcapSave/LogAndPcapSave.cpp 
+${OBJECTDIR}/LogAndPcapSave/LogAndPcapSave.o: LogAndPcapSave/LogAndPcapSave.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/LogAndPcapSave.o LogAndPcapSave/LogAndPcapSave.cpp
 
-${OBJECTDIR}/LogAndPcapSave/LogCapture.o: LogAndPcapSave/LogCapture.cpp 
+${OBJECTDIR}/LogAndPcapSave/LogCapture.o: LogAndPcapSave/LogCapture.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/LogCapture.o LogAndPcapSave/LogCapture.cpp
 
-${OBJECTDIR}/LogAndPcapSave/NetCapture.o: LogAndPcapSave/NetCapture.cpp 
+${OBJECTDIR}/LogAndPcapSave/NetCapture.o: LogAndPcapSave/NetCapture.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/NetCapture.o LogAndPcapSave/NetCapture.cpp
 
-${OBJECTDIR}/LogAndPcapSave/Process.o: LogAndPcapSave/Process.cpp 
+${OBJECTDIR}/LogAndPcapSave/Process.o: LogAndPcapSave/Process.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/Process.o LogAndPcapSave/Process.cpp
 
-${OBJECTDIR}/LogAndPcapSave/Search.o: LogAndPcapSave/Search.cpp 
+${OBJECTDIR}/LogAndPcapSave/Search.o: LogAndPcapSave/Search.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/Search.o LogAndPcapSave/Search.cpp
 
-${OBJECTDIR}/LogAndPcapSave/Settings.o: LogAndPcapSave/Settings.cpp 
+${OBJECTDIR}/LogAndPcapSave/Settings.o: LogAndPcapSave/Settings.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/Settings.o LogAndPcapSave/Settings.cpp
 
-${OBJECTDIR}/LogAndPcapSave/TimeInfo.o: LogAndPcapSave/TimeInfo.cpp 
+${OBJECTDIR}/LogAndPcapSave/TimeInfo.o: LogAndPcapSave/TimeInfo.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/TimeInfo.o LogAndPcapSave/TimeInfo.cpp
 
-${OBJECTDIR}/LogAndPcapSave/UniConvert.o: LogAndPcapSave/UniConvert.cpp 
+${OBJECTDIR}/LogAndPcapSave/UniConvert.o: LogAndPcapSave/UniConvert.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/UniConvert.o LogAndPcapSave/UniConvert.cpp
 
-${OBJECTDIR}/LogAndPcapSave/dbgprint.o: LogAndPcapSave/dbgprint.cpp 
+${OBJECTDIR}/LogAndPcapSave/dbgprint.o: LogAndPcapSave/dbgprint.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/dbgprint.o LogAndPcapSave/dbgprint.cpp
 
-${OBJECTDIR}/LogAndPcapSave/stdafx.o: LogAndPcapSave/stdafx.cpp 
+${OBJECTDIR}/LogAndPcapSave/stdafx.o: LogAndPcapSave/stdafx.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/stdafx.o LogAndPcapSave/stdafx.cpp
@@ -145,7 +145,6 @@ ${OBJECTDIR}/LogAndPcapSave/stdafx.o: LogAndPcapSave/stdafx.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/logandpcapsave
 
 # Subprojects
 .clean-subprojects:

@@ -287,7 +287,7 @@ class __CONIO_H{
       }
       
     int cputs(const char*str){
-      printf(str);
+      printf("%s",str);
       return 0;
       }
         
