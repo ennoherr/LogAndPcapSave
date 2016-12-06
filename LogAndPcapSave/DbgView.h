@@ -2,10 +2,12 @@
 
 #include <cstring>
 
+#include <string>
 #include <queue>
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <vector>
 
 #include "LogData.h"
 #include "TimeInfo.h"
@@ -48,5 +50,6 @@ private:
 
 	void EventThreadRoutine(void);
 	std::string removeCRLF(std::string str);
+        std::vector<std::string> split(const std::string &s, char delim);
 };
 

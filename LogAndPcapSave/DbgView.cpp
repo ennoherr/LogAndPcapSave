@@ -16,6 +16,7 @@
 #include <mutex>
 #include <ctime>
 #include <chrono>
+#include <vector>
 
 #include "LogData.h"
 #include "TimeInfo.h"
@@ -309,30 +310,37 @@ void DbgView::EventThreadRoutine(void)
                 // on change
                 if (buf.st_size != fileSize)
                 {
-                    tail.OnChange();
-//                        std::vector<char> v = tail.GetChanges();
-                    temp = tail.GetChangesAsString();
-
-#ifndef _DEBUG
-//                        std::cout << "raw: " << &v.front() << std::endl;
-//                        std::cout << "str: " << s << std::endl;
-#endif // !_DEBUG
-                        
-                        // remember filesize
+                    // remember filesize
                     fileSize = buf.st_size;
-                
-                    DbgData dd;
-                    dd.time = TI.getTimeReadableMs();
-                    dd.timestamp_ms = TI.getTimestampMs();
-                    dd.pid = 0;
+                    
+                    // get changed data
+                    tail.OnChange();
+                    temp = tail.GetChangesAsString();
+                    
+                    // treat every line in temp individually
+                    std::vector<std::string> v = split(temp, '\n');
+                    
+                    for (auto s : v)
+                    {
+                        s = removeCRLF(s);
+                        
+                        // no empty lines
+                        if (s.length() == 0) 
+                            continue;
+                        
+                        DbgData dd;
+                        dd.time = TI.getTimeReadableMs();
+                        dd.timestamp_ms = TI.getTimestampMs();
+                        dd.pid = 0;
 
-                    // some strings are too long causing an std::range_error exception when converting to string
-                    if (temp.length() > 1024) temp = temp.substr(0, 1024);
-                    dd.msg = removeCRLF(temp);
+                        // some strings are too long causing an std::range_error exception when converting to string
+                        if (s.length() > 1024) s = s.substr(0, 1024);
+                        dd.msg = s;
 
-                    mtx->lock();
-                    data->push(dd);
-                    mtx->unlock();
+                        mtx->lock();
+                        data->push(dd);
+                        mtx->unlock();
+                    }
                 }
                 
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -362,3 +370,19 @@ std::string DbgView::removeCRLF(std::string str)
 	return str;
 }
 
+
+std::vector<std::string> DbgView::split(const std::string &s, char delim) 
+{
+    std::vector<std::string> elems;
+    std::stringstream ss;
+    std::string item;
+    
+    ss.str(s);
+
+    while (std::getline(ss, item, delim)) 
+    {
+        elems.push_back(item);
+    }
+    
+    return elems;
+}

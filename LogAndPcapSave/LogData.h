@@ -24,5 +24,4 @@ public:
 
 	unsigned long pid;
 	std::string msg;
-
 };

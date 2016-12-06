@@ -57,7 +57,6 @@ std::string TimeInfo::getTimeReadable(std::string DateTimeSep, std::string TimeS
 	strftime(time_hour, l - 1, "%H", &tm);
 	strftime(time_min, l - 1, "%M", &tm);
 	strftime(time_sec, l - 1, "%S", &tm);
-
 #else
         struct tm *tm;
         tm = localtime(&t);
@@ -102,8 +101,8 @@ std::wstring TimeInfo::getTimeReadableW(std::wstring DateTimeSep, std::wstring T
 	wcsftime(wc_time_hour, l-1, L"%H", tm);
 	wcsftime(wc_time_min, l-1, L"%M", tm);
 	wcsftime(wc_time_sec, l-1, L"%S", tm);
-
 #endif	
+        
 	res = wc_date + DateTimeSep + wc_time_hour + TimeSep + wc_time_min + TimeSep + wc_time_sec;
 
 	return res;
@@ -117,16 +116,14 @@ std::string TimeInfo::getTimeReadableMs(std::string DateTimeSep, std::string Tim
 #ifdef _WIN32
 	struct _timeb t = { 0 };
 	_ftime_s(&t);
+#else
+        struct timeb t = { 0 };
+        ftime(&t);
+#endif
         
 	msec = std::to_string(t.millitm);
 	if (msec.length() == 1) msec = "00" + msec;
 	if (msec.length() == 2) msec = "0" + msec;
-#else
-        auto t = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> fp_ms = t.time_since_epoch();
-        //std::cout << std::to_string(fp_ms.count()) << std::endl;
-#endif
-        // todo convert fp_ms to msec - or find another solution
         
 	res = getTimeReadable(DateTimeSep, TimeSep) + MSecSep + msec;
 
@@ -141,13 +138,15 @@ std::wstring TimeInfo::getTimeReadableMsW(std::wstring DateTimeSep, std::wstring
 #ifdef _WIN32
 	struct _timeb t = { 0 };
 	_ftime_s(&t);
+#else
+        struct timeb t = { 0 };
+        ftime(&t);
+#endif 
 
 	msec = std::to_wstring(t.millitm);
 	if (msec.length() == 1) msec = L"00" + msec;
 	if (msec.length() == 2) msec = L"0" + msec;
-#else
-        // todo
-#endif 
+
         
 	res = getTimeReadableW(DateTimeSep, TimeSep) + MSecSep + msec;
 

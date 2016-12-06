@@ -197,7 +197,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (res == 0 && multipleNic() != 0)			res = 2;
 	if (res == 0 && closeProcesses() != 0)			res = 3;
 	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
-//	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
+	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
 
 	if (res == 0)
 	{
