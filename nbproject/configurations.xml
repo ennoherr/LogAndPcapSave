@@ -7,6 +7,7 @@
       <itemPath>LogAndPcapSave/DbgView.h</itemPath>
       <itemPath>LogAndPcapSave/Files.h</itemPath>
       <itemPath>LogAndPcapSave/HddMgmt.h</itemPath>
+      <itemPath>LogAndPcapSave/LogCapture.h</itemPath>
       <itemPath>LogAndPcapSave/LogData.h</itemPath>
       <itemPath>LogAndPcapSave/NetCapture.h</itemPath>
       <itemPath>LogAndPcapSave/Process.h</itemPath>
@@ -33,6 +34,7 @@
       <itemPath>LogAndPcapSave/Files.cpp</itemPath>
       <itemPath>LogAndPcapSave/HddMgmt.cpp</itemPath>
       <itemPath>LogAndPcapSave/LogAndPcapSave.cpp</itemPath>
+      <itemPath>LogAndPcapSave/LogCapture.cpp</itemPath>
       <itemPath>LogAndPcapSave/NetCapture.cpp</itemPath>
       <itemPath>LogAndPcapSave/Process.cpp</itemPath>
       <itemPath>LogAndPcapSave/Search.cpp</itemPath>
@@ -91,6 +93,10 @@
       <item path="LogAndPcapSave/LogAndPcapSave.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="LogAndPcapSave/LogAndPcapSave.rc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="LogAndPcapSave/LogCapture.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="LogAndPcapSave/LogCapture.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="LogAndPcapSave/LogData.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -178,6 +184,10 @@
       <item path="LogAndPcapSave/LogAndPcapSave.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="LogAndPcapSave/LogAndPcapSave.rc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="LogAndPcapSave/LogCapture.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="LogAndPcapSave/LogCapture.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="LogAndPcapSave/LogData.h" ex="false" tool="3" flavor2="0">
       </item>

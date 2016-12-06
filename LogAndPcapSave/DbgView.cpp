@@ -6,6 +6,7 @@
 #endif
 
 #include <assert.h>
+#include <sys/stat.h>
 
 #include <algorithm>
 #include <iostream>
@@ -19,6 +20,7 @@
 #include "LogData.h"
 #include "TimeInfo.h"
 #include "dbgprint.h"
+#include "Tail.h"
 
 #include "DbgView.h"
 
@@ -44,7 +46,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
-	: worker()
+	: logfile("")
+        , worker()
 	, isThreadRunning(false)
 	, data(NULL)
 	, mtx(NULL)
@@ -62,6 +65,18 @@ DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
 
 DbgView::~DbgView(void)
 {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	set the name of the logfile. if empty data from OutputDebugSting (only WIN32) will 
+///             be used. Therefore on Posix systems this is mandatory. </summary>
+///
+/// <remarks>	Enno Herr, 06.12.2016. </remarks>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void DbgView::setLogfile(const std::string file)
+{
+    logfile = file;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,6 +174,9 @@ void DbgView::EventThreadRoutine(void)
         
       	TimeInfo TI;
         
+        // no logfile, use OutputDebug (only WIN32)
+        if (logfile.length() == 0)
+        {
 #ifdef _WIN32        
 	HANDLE hAckEvent = INVALID_HANDLE_VALUE;
 	HANDLE SharedFile = INVALID_HANDLE_VALUE;
@@ -274,15 +292,40 @@ void DbgView::EventThreadRoutine(void)
 
 
 	dbgtprintf(_T("DbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), worker.get_id());
-#else
-        // TEST !!!
+#endif
+            dbgtprintf(_T("ERROR: On Posix systems a log file must be given!"));
+        } // end if logfile.length == 0
+        else
+        {
+            struct stat buf;
+            long long fileSize;
+            Tail tail(logfile);
+            
             while (isThreadRunning)
             {
+                // check for changes
+                stat(logfile.c_str(), &buf);
+
+                // on change
+                if (buf.st_size != fileSize)
+                {
+                    tail.OnChange();
+//                        std::vector<char> v = tail.GetChanges();
+                    temp = tail.GetChangesAsString();
+
+#ifndef _DEBUG
+//                        std::cout << "raw: " << &v.front() << std::endl;
+//                        std::cout << "str: " << s << std::endl;
+#endif // !_DEBUG
+                        
+                        // remember filesize
+                    fileSize = buf.st_size;
+                
                     DbgData dd;
                     dd.time = TI.getTimeReadableMs();
                     dd.timestamp_ms = TI.getTimestampMs();
-                    dd.pid = 999999;
-                    temp = "This is a test of the Linux version!!!";
+                    dd.pid = 0;
+
                     // some strings are too long causing an std::range_error exception when converting to string
                     if (temp.length() > 1024) temp = temp.substr(0, 1024);
                     dd.msg = removeCRLF(temp);
@@ -290,11 +333,13 @@ void DbgView::EventThreadRoutine(void)
                     mtx->lock();
                     data->push(dd);
                     mtx->unlock();
-                    
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
-#endif
-	
+                }
+                
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                
+            } // end - while
+	} // end - if-else logfile
+        
 	// in case thread has exited for other reasons
 	isThreadRunning = false;
 }

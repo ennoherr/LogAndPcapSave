@@ -16,7 +16,8 @@ settings::settings(void)
 	: version("1.0.0.4 - Build 2016-06-17")
 	, fname("out")
 	, find("")
-	, logfileInterval("day")
+        , logfile("")
+        , logfileInterval("day")
 	, nicToUse(1)
 	, nicCount(1)
 	, pcapMaxSize(100)
@@ -74,6 +75,13 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 				nicIsSet = true;
 			}
 		}
+		if (argCap == _T("-F")) // input log file, if empty DbgOutput (only WIN32)
+		{
+			if (args.at(i+1).length() > 0)
+			{
+				logfile = uc.ts2s(args.at(i+1));
+			}
+		}
 		if (argCap == _T("-O")) // output filename
 		{
 			if (args.at(i+1).length() > 0)
@@ -88,7 +96,7 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 				logfileInterval = uc.ts2s(args.at(i+1));
 			}
 		}
-		if (argCap == _T("-F")) // string to find
+		if (argCap == _T("-S")) // string to find
 		{
 			if (args.at(i+1).length() > 0)
 			{
@@ -114,9 +122,10 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 			std::cout << "Usage: " << std::endl;
 			std::cout << "-l :: List all NICs" << std::endl;
 			std::cout << "-i <num> :: number of NIC to be captured, default = 1" << std::endl;
+                        std::cout << "-f <string> :: path to log file, if empty DbgOut (only Windows) will be used, mandatory on Linux, default = \"\"";
 			std::cout << "-o <string> :: prefix for output files, default = out" << std::endl;
 			std::cout << "-oi <string> :: interval for log file, values = none, hour, day, default = day" << std::endl;
-			std::cout << "-f <string> :: string to search (if empty only debug output to file, dump will be deleted), default = \"\"" << std::endl;
+			std::cout << "-s <string> :: string to search (if empty only debug output to file, dump will be deleted), default = \"\"" << std::endl;
 			std::cout << "-pcapmax <int> :: max size of pcap file [in MB], default = 100" << std::endl;
 			std::cout << std::endl;
 
@@ -154,6 +163,11 @@ std::string settings::getFilename(void)
 std::string settings::getFind(void)
 {
 	return find;
+}
+
+std::string settings::getLogfile(void)
+{
+        return logfile;
 }
 
 std::string settings::getLogInterval(void)

@@ -18,6 +18,7 @@
 #include "Settings.h"
 #include "LogData.h"
 #include "DbgView.h"
+//#include "LogCapture.h"
 #include "Search.h"
 #include "NetCapture.h"
 #include "Process.h"
@@ -25,9 +26,12 @@
 
 #include "Files.h"
 
+
 // global
 settings set;
 NetCapture *netCap = NULL;
+//DbgView *dbgCap = NULL;
+//LogCapture *logCap = NULL;
 DbgView *logCap = NULL;
 Search *s = NULL;
 
@@ -112,6 +116,7 @@ int stopCapture(void)
 	int res = 0;
 
 	// stop threads
+//        if (res == 0 && dbgCap != NULL) dbgCap->Stop();
 	if (res == 0 && logCap != NULL) logCap->Stop();
 	if (res == 0 && netCap != NULL) netCap->stopCaptureThread();
 
@@ -133,6 +138,10 @@ int startCapture(std::queue<DbgData> &data, std::mutex &mtxData)
 
 	if (res == 0 && logCap == NULL) logCap = new DbgView(&data, &mtxData);
 	else res = 2;
+        
+//        if (res == 0 && set.getLogfile().length() > 0 && logCap == NULL) logCap = new LogCapture(set.getLogfile());
+        if (res == 0 && set.getLogfile().length() > 0) logCap->setLogfile(set.getLogfile());
+        else res = 3;
 
 	// no nic selected -> exit
 	if (res == 0 && set.getNicToUse() == 0) res = 1;
@@ -187,7 +196,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (res == 0 && loadConfig(argc, argv) != 0)		res = 1;
 	if (res == 0 && multipleNic() != 0)			res = 2;
 	if (res == 0 && closeProcesses() != 0)			res = 3;
-//	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
+	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
 //	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
 
 	if (res == 0)

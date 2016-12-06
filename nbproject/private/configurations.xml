@@ -29,8 +29,11 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -l</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1 -l /</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1 -l ~/tailtest.txt</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1 -f ~/tailtest.txt</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -i 1</runcommand>
+        <runcommand>"${OUTPUT_PATH}" -i 1 -f ~/tailtest.txt</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
@@ -50,8 +53,6 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
-        <gdb_signals>
-        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>

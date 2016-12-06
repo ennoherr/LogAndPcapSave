@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/LogAndPcapSave/Files.o \
 	${OBJECTDIR}/LogAndPcapSave/HddMgmt.o \
 	${OBJECTDIR}/LogAndPcapSave/LogAndPcapSave.o \
+	${OBJECTDIR}/LogAndPcapSave/LogCapture.o \
 	${OBJECTDIR}/LogAndPcapSave/NetCapture.o \
 	${OBJECTDIR}/LogAndPcapSave/Process.o \
 	${OBJECTDIR}/LogAndPcapSave/Search.o \
@@ -92,6 +93,11 @@ ${OBJECTDIR}/LogAndPcapSave/LogAndPcapSave.o: LogAndPcapSave/LogAndPcapSave.cpp
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -D_DEBUG -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/LogAndPcapSave.o LogAndPcapSave/LogAndPcapSave.cpp
+
+${OBJECTDIR}/LogAndPcapSave/LogCapture.o: LogAndPcapSave/LogCapture.cpp 
+	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -D_DEBUG -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/LogAndPcapSave/LogCapture.o LogAndPcapSave/LogCapture.cpp
 
 ${OBJECTDIR}/LogAndPcapSave/NetCapture.o: LogAndPcapSave/NetCapture.cpp 
 	${MKDIR} -p ${OBJECTDIR}/LogAndPcapSave

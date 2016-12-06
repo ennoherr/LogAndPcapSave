@@ -14,6 +14,7 @@ public:
 	std::string getVersion(void);
 	std::string getFilename(void);
 	std::string getFind(void);
+        std::string getLogfile(void);
 	std::string getLogInterval(void);
 	std::vector<std::string> getProcRunningList(void);
 	int getNicToUse(void);
@@ -23,6 +24,7 @@ public:
 
 private:
 	std::string find;
+        std::string logfile;
 	std::string logfileInterval;
 	std::string fname;
 	std::string version;

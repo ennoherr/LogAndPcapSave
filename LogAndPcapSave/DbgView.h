@@ -31,12 +31,15 @@ class DbgView
 public:
 	DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut);
 	~DbgView(void);
+        
+        void setLogfile(const std::string file);
 
 	int Start(void);
 	int Stop(void);
 
 private:
-	std::queue<DbgData> *data;
+        std::string logfile;
+        std::queue<DbgData> *data;
 	std::thread worker;
 	std::mutex *mtx;
 	std::atomic<bool> isThreadRunning;
