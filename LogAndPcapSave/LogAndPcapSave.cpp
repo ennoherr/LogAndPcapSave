@@ -139,7 +139,6 @@ int startCapture(std::queue<DbgData> &data, std::mutex &mtxData)
 	if (res == 0 && logCap == NULL) logCap = new DbgView(&data, &mtxData);
 	else res = 2;
         
-//        if (res == 0 && set.getLogfile().length() > 0 && logCap == NULL) logCap = new LogCapture(set.getLogfile());
         if (res == 0 && set.getLogfile().length() > 0) logCap->setLogfile(set.getLogfile());
         else res = 3;
 

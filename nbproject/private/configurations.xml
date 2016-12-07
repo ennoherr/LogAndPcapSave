@@ -32,8 +32,9 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1 -l /</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1 -l ~/tailtest.txt</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1 -f ~/tailtest.txt</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -i 1 -f /var/log/kern.log -s "1"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -i 1 -f ~/tailtest.txt</runcommand>
+        <runcommand>"${OUTPUT_PATH}" -i 1 -f /var/log/kern.log -s "1"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

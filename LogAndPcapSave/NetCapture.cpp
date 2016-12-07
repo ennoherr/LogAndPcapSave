@@ -194,11 +194,13 @@ int NetCapture::getInterfaces(std::vector<std::string> &adapters)
 			//adapters.push_back(iface->description);
                         adapters.push_back(iface->name);
 
-			//printf("%d. %s\n    ", ++i, iface->name);
-			//if (iface->description)
-			//	printf(" (%s)\n", iface->description);
-			//else
-			//	printf(" (No description available)\n");
+#ifdef _DEBUG
+			printf("NetCapture::getInterfaces DEBUG: %s - desc: ", iface->name);
+                        if (iface->description)
+				printf(" (%s)\n", iface->description);
+			else
+				printf(" (No description available)\n");
+#endif
 		}
 	}
 
@@ -233,9 +235,9 @@ int NetCapture::setInterface(const unsigned Interface)
 		res = 2;
 	}
 #else
-	if (res == 0 && ((selectedIf = pcap_open_live(iface->name, 100, 0, -1, errbuf)) == NULL))
+	if (res == 0 && ((selectedIf = pcap_open_live(iface->name, 100, 1, 1000, errbuf)) == NULL))
 	{
-		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open_life(...) returned with error msg = \'%s\'."), errbuf);
+		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open_live(...) returned with error msg = \'%s\'."), errbuf);
 		res = 2;
 	}
 #endif
