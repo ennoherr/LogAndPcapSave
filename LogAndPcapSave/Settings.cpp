@@ -115,8 +115,8 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 		if ( 
 			argCap == _T("-?") ||
 			argCap == _T("/?") ||
-			argCap == _T("-h") ||
-			argCap == _T("/h")
+			argCap == _T("-H") ||
+			argCap == _T("/H")
 			) // display help message
 		{
 			std::cout << "Usage: " << std::endl;
