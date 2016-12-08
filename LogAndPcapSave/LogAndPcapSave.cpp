@@ -139,11 +139,10 @@ int startCapture(std::queue<DbgData> &data, std::mutex &mtxData)
 	if (res == 0 && logCap == NULL) logCap = new DbgView(&data, &mtxData);
 	else res = 2;
         
-        if (res == 0 && set.getLogfile().length() > 0) logCap->setLogfile(set.getLogfile());
-        else res = 3;
+	if (res == 0 && set.getLogfile().length() > 0) logCap->setLogfile(set.getLogfile());
 
 	// no nic selected -> exit
-	if (res == 0 && set.getNicToUse() == 0) res = 1;
+	if (res == 0 && set.getNicToUse() == 0) res = 3;
 
 	if (res == 0)
 	{
