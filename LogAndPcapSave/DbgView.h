@@ -1,9 +1,13 @@
 #pragma once
 
+#include <cstring>
+
+#include <string>
 #include <queue>
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <vector>
 
 #include "LogData.h"
 #include "TimeInfo.h"
@@ -29,12 +33,15 @@ class DbgView
 public:
 	DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut);
 	~DbgView(void);
+        
+        void setLogfile(const std::string file);
 
 	int Start(void);
 	int Stop(void);
 
 private:
-	std::queue<DbgData> *data;
+        std::string logfile;
+        std::queue<DbgData> *data;
 	std::thread worker;
 	std::mutex *mtx;
 	std::atomic<bool> isThreadRunning;
@@ -43,5 +50,6 @@ private:
 
 	void EventThreadRoutine(void);
 	std::string removeCRLF(std::string str);
+        std::vector<std::string> split(const std::string &s, char delim);
 };
 

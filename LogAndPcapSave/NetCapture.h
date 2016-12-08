@@ -25,14 +25,14 @@ public:
 
 	int getInterfacesCount(void);
 	int getInterfaces(std::vector<std::string> &adapters);
-	int setInterface(const unsigned Interface);
+	int configInterface(const unsigned Interface);
 
 	int writeDump(std::string fname, long long fMaxSizeMbyte);
 	void safeCurrentDump(void);
 
 private:
 	pcap_if_t *interfaces;
-	pcap_t *selectedIf;
+	pcap_t *pcap;
 	unsigned int numOfIf;
 
 	std::thread worker;

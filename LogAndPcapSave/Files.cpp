@@ -32,14 +32,14 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 {
 	if (fname.length() == 0 || line.length() == 0 || interval.length() == 0)
 	{
-		dbgprintf("FileMgmt::writeToFile ERROR: fname = \'%s\', line = \'%s\' or interval = \'%s\' have length zero!", fname, line, interval);
+		dbgprintf("FileMgmt::writeToFile ERROR: fname = \'%s\', line = \'%s\' or interval = \'%s\' have length zero!", fname.c_str(), line.c_str(), interval.c_str());
 		return -1;
 	}
 
 	int res = 0;
 	bool newFile = false;
 
-	transform(interval.begin(), interval.end(), interval.begin(), ::toupper);
+	std::transform(interval.begin(), interval.end(), interval.begin(), ::toupper);
 
 	if (interval == "NONE")
 	{

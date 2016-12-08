@@ -1,8 +1,12 @@
 #include "stdafx.h"
 
+#ifdef _WIN32
 #include <windows.h>
 #include <process.h>
+#endif
+
 #include <assert.h>
+#include <sys/stat.h>
 
 #include <algorithm>
 #include <iostream>
@@ -12,10 +16,12 @@
 #include <mutex>
 #include <ctime>
 #include <chrono>
+#include <vector>
 
 #include "LogData.h"
 #include "TimeInfo.h"
 #include "dbgprint.h"
+#include "Tail.h"
 
 #include "DbgView.h"
 
@@ -41,11 +47,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
-	: worker()
+	: logfile("")
+        , worker()
 	, isThreadRunning(false)
 	, data(NULL)
 	, mtx(NULL)
-	, readyEvent(NULL)
+	, readyEvent(0)
 {
 	data = dataInOut;
 	mtx = mtxInOut;
@@ -59,6 +66,18 @@ DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
 
 DbgView::~DbgView(void)
 {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	set the name of the logfile. if empty data from OutputDebugSting (only WIN32) will 
+///             be used. Therefore on Posix systems this is mandatory. </summary>
+///
+/// <remarks>	Enno Herr, 06.12.2016. </remarks>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void DbgView::setLogfile(const std::string file)
+{
+    logfile = file;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,21 +130,22 @@ int DbgView::Stop(void)
 
 	if (worker.joinable())
 	{
-		assert(readyEvent != INVALID_HANDLE_VALUE);
-		SetEvent(readyEvent);
+#ifdef _WIN32
+            assert(readyEvent != INVALID_HANDLE_VALUE);
+            SetEvent(readyEvent);
+#endif
+            SAFE_HANDLE(readyEvent);
 
-		SAFE_HANDLE(readyEvent);
-
-		isThreadRunning = false;
-		worker.join();
+            isThreadRunning = false;
+            worker.join();
 		
-		dbgtprintf(_T("DbgView::Stop STATUS: thread stopped"));
+            dbgtprintf(_T("DbgView::Stop STATUS: thread stopped"));
 	}
 	else
 	{
-		res = 1;
+            res = 1;
 
-		dbgtprintf(_T("DbgView::Stop WARNING: thread not running."));
+            dbgtprintf(_T("DbgView::Stop WARNING: thread not running."));
 	}
 
 	return res;
@@ -152,13 +172,18 @@ void DbgView::EventThreadRoutine(void)
 
 	unsigned int res = 0;
 	std::string temp = "";
+        
+      	TimeInfo TI;
+        
+        // no logfile, use OutputDebug (only WIN32)
+        if (logfile.length() == 0)
+        {
+#ifdef _WIN32        
 	HANDLE hAckEvent = INVALID_HANDLE_VALUE;
 	HANDLE SharedFile = INVALID_HANDLE_VALUE;
 	DBG_BUFFER* pDB = NULL;
 	SECURITY_ATTRIBUTES sa = { 0 };
 	SECURITY_DESCRIPTOR sd = { 0 };
-
-	TimeInfo TI;
 
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.bInheritHandle = TRUE;
@@ -268,7 +293,61 @@ void DbgView::EventThreadRoutine(void)
 
 
 	dbgtprintf(_T("DbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), worker.get_id());
-	
+#endif
+            dbgtprintf(_T("ERROR: On Posix systems a log file must be given!"));
+        } // end if logfile.length == 0
+        else
+        {
+            struct stat buf;
+            long long fileSize;
+            Tail tail(logfile);
+            
+            while (isThreadRunning)
+            {
+                // check for changes
+                stat(logfile.c_str(), &buf);
+
+                // on change
+                if (buf.st_size != fileSize)
+                {
+                    // remember filesize
+                    fileSize = buf.st_size;
+                    
+                    // get changed data
+                    tail.OnChange();
+                    temp = tail.GetChangesAsString();
+                                        
+                    // treat every line in temp individually
+                    std::vector<std::string> v = split(temp, '\n');
+                    
+                    for (auto s : v)
+                    {
+                        s = removeCRLF(s);
+                        
+                        // no empty lines
+                        if (s.length() == 0) 
+                            continue;
+                        
+                        DbgData dd;
+                        dd.time = TI.getTimeReadableMs();
+                        dd.timestamp_ms = TI.getTimestampMs();
+                        dd.pid = 0;
+
+                        // some strings are too long causing an std::range_error exception when converting to string
+                        if (s.length() > 1024) s = s.substr(0, 1024);
+                        dd.msg = s;
+
+                        mtx->lock();
+                        data->push(dd);
+                        mtx->unlock();
+                    }
+                }
+                
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                
+            } // end - while
+	} // end - if-else logfile
+        
 	// in case thread has exited for other reasons
 	isThreadRunning = false;
 }
@@ -291,3 +370,19 @@ std::string DbgView::removeCRLF(std::string str)
 	return str;
 }
 
+
+std::vector<std::string> DbgView::split(const std::string &s, char delim) 
+{
+    std::vector<std::string> elems;
+    std::stringstream ss;
+    std::string item;
+    
+    ss.str(s);
+
+    while (std::getline(ss, item, delim)) 
+    {
+        elems.push_back(item);
+    }
+    
+    return elems;
+}

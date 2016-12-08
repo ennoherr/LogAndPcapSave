@@ -2,6 +2,7 @@
 
 #include "UniConvert.h"
 
+#include "dbgprint.h"
 #include <string>
 
 #ifdef _WIN32
@@ -14,6 +15,7 @@
 #endif
 #else
 #include <unistd.h>
+#include <sys/statvfs.h>
 #define GetCurrentDir getcwd
 #endif
 
@@ -31,13 +33,19 @@
 
 
 hddMgmt::hddMgmt(void)
-{
+#ifdef _WIN32
 	// bytes available to caller
-	m_uliFreeBytesAvailable.QuadPart     = 0L;
+	: m_uliFreeBytesAvailable.QuadPart(0L)
 	// bytes on disk
-	m_uliTotalNumberOfBytes.QuadPart     = 0L;
+	, m_uliTotalNumberOfBytes.QuadPart(0L)
 	// free bytes on disk
-	m_uliTotalNumberOfFreeBytes.QuadPart = 0L;
+	, m_uliTotalNumberOfFreeBytes.QuadPart(0L)
+#else
+        : freeBytes_(0)
+        , totalBytes_(0)
+        , totalFreeBytes_(0)
+#endif
+{
 }
 
 
@@ -52,7 +60,7 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 
 	if (hddToCheck.length() == 0)
 	{
-		TCHAR path[FILENAME_MAX] = _T("\0");
+		TCHAR path[FILENAME_MAX];
 		if (!GetCurrentDir(path, FILENAME_MAX))
 		{
 			return false;
@@ -61,6 +69,7 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 		hddToCheck = path;
 	}
 
+#ifdef _WIN32
 	if(!GetDiskFreeSpaceExW(
 		hddToCheck.c_str(),				// directory name
 		&m_uliFreeBytesAvailable,		// bytes available to caller
@@ -69,23 +78,55 @@ bool hddMgmt::readHddDiskSpace(std::string hddPath)
 	{
 		return false;
 	}
+#else
+        struct statvfs fs;
+        if (statvfs(hddToCheck.c_str(), &fs) < 0)
+        {
+            return false;
+        }
+        
+        totalBytes_ = fs.f_bsize * fs.f_blocks;
+        freeBytes_ = fs.f_bsize * fs.f_bavail;
+        totalFreeBytes_ = fs.f_bsize * fs.f_bfree;
+
+#ifdef _DEBUG
+        //dbgtprintf(_T("totalBytes = %ld, freeBytes = %ld, totalFreeBytes = %ld"), totalBytes_, freeBytes_, totalFreeBytes_);
+        //dbgtprintf(_T("totalGBytes = %4.2f, freeGBytes = %4.2f, totalFreeGBytes = %4.2f"), getTotalNumberOfGBytes(), getFreeGBytesAvailable(), getTotalNumberOfFreeGBytes());
+#endif       
+        
+#endif
 
 	return true;
 }
 
 __int64 hddMgmt::getFreeBytesAvailable(void)
 { 
+#if _WIN32
 	return m_uliFreeBytesAvailable.QuadPart;
+#else
+        return freeBytes_;
+#endif
+
 }
 
 __int64 hddMgmt::getTotalNumberOfBytes(void)
 { 
-	return m_uliTotalNumberOfBytes.QuadPart;
+#if _WIN32
+        return m_uliTotalNumberOfBytes.QuadPart;
+#else
+        return totalBytes_;
+#endif
+	
 }
 
 __int64 hddMgmt::getTotalNumberOfFreeBytes(void)
 { 
+#if _WIN32
 	return m_uliTotalNumberOfFreeBytes.QuadPart;
+#else
+        return totalFreeBytes_;
+#endif
+
 }
 
 __int64 hddMgmt::getFreeMBytesAvailable(void)
@@ -105,17 +146,17 @@ __int64 hddMgmt::getTotalNumberOfFreeMBytes(void)
 
 double hddMgmt::getFreeGBytesAvailable(void)
 { 
-	return (double)( (signed __int64)(m_uliFreeBytesAvailable.QuadPart)/1.0e9 );
+	return (double)( (signed __int64)(getFreeBytesAvailable())/1.0e9 );
 }
 
 double hddMgmt::getTotalNumberOfGBytes(void)
 { 
-	return (double)( (signed __int64)(m_uliTotalNumberOfBytes.QuadPart)/1.0e9 );     
+	return (double)( (signed __int64)(getTotalNumberOfBytes())/1.0e9 );     
 }
 
 double hddMgmt::getTotalNumberOfFreeGBytes(void)
 { 
-	return (double)( (signed __int64)(m_uliTotalNumberOfFreeBytes.QuadPart)/1.0e9 ); 
+	return (double)( (signed __int64)(getTotalNumberOfFreeBytes())/1.0e9 ); 
 }
 
 

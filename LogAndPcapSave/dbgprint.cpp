@@ -10,33 +10,53 @@
 // maybe some includes necessary
 
 #include "stdafx.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 #include <time.h>
+#include <iostream>
 #include "dbgprint.h"
 
+
+#ifdef _WIN32
 HANDLE g_hMutex;
+#else
+        // todo
+#endif
+
 
 //-----------------------------------------------------------------------------------
 // output debug via printf
 //
 void InitDebugOut(void)
 {
+#ifdef _WIN32
 	g_hMutex = CreateMutex(NULL,		// default security attributes
 						  FALSE,	// initially not owned
 						  NULL);	// unnamed mutex
   
 	if (g_hMutex == NULL) 
+        {
 		printf("CreateMutex error: %d\n", GetLastError());
+        }
+#else
+        // todo
+#endif
 }
 
 void DeInitDebugOut(void)
 {
+#ifdef _WIN32
 	CloseHandle(g_hMutex);
+#else
+        // todo
+#endif
 }
 
 //-----------------------------------------------------------------------------------
 // output debug via outputdebugstring
 //
-void __cdecl dbgtprintf(LPCTSTR format, ...)
+void dbgtprintf(LPCTSTR format, ...)
 {
 	if (!format)
 	{
@@ -51,32 +71,58 @@ void __cdecl dbgtprintf(LPCTSTR format, ...)
 	}
 
 	int nSize = 0;
-	TCHAR szBuffer[iLen] = _T("\0");
+	TCHAR szBuffer[iLen]; // = _T("\0");
 	va_list args;
-		
+        		
 	// get input and make an output string
 	try
 	{
 		va_start(args, format);
+#ifdef _WIN32
 		nSize = _vsntprintf_s(szBuffer, iLen-5, format, args);
+#else
+                nSize = vsprintf(szBuffer, format, args);
+#endif
 		va_end(args);
 
 		// on error - nSize should be length of string
 		if(nSize <= 0)
+                {
+#ifdef _WIN32
 			_tcscpy_s(szBuffer, _T("ERROR: Unable to process args for debug information!"));
+#else
+                        std::cout << "ERROR: Unable to process args for debug information!" << std::endl;
+#endif
+                }
 
+#ifdef _WIN32
 		_tcscat_s(szBuffer, _T("\r\n\0"));
+#else
+                // nothing to ad
+#endif
+
+
+#ifdef _WIN32
 
 		OutputDebugString(szBuffer);
+#else
+                std::cout << szBuffer << std::endl;
+#endif
+
 	}
 	catch(...)
 	{
+#ifdef _WIN32
 		OutputDebugString(_T("ERROR: Exception while processing debug information!"));
+#else
+                std::cout << "ERROR: Exception while processing debug information!" << std::endl;
+#endif
 	}
 }
 
-void __cdecl dbgprintf(const char *format, ...)
+void dbgprintf(const char *format, ...)
 {
+#ifdef _WIN32
 	if(!format)
 	{
 		return;
@@ -88,7 +134,7 @@ void __cdecl dbgprintf(const char *format, ...)
 	{
 		return;
 	}
-
+        
 	int nSize = 0;
 	char szBuffer[iLen] = "\0";
 	va_list args;
@@ -112,10 +158,14 @@ void __cdecl dbgprintf(const char *format, ...)
 	{
 		OutputDebugStringA("ERROR: Exception while processing debug information!");
 	}
+#else
+        // todo
+#endif
 }
 
-void __cdecl dbgwprintf(const wchar_t *format, ...)
+void dbgwprintf(const wchar_t *format, ...)
 {
+#ifdef _WIN32
 	if(!format)
 	{
 		return;
@@ -151,6 +201,9 @@ void __cdecl dbgwprintf(const wchar_t *format, ...)
 	{
 		OutputDebugStringW(L"ERROR: Exception while processing debug information!");
 	}
+#else
+        // todo
+#endif
 }
 
 
@@ -159,6 +212,7 @@ void __cdecl dbgwprintf(const wchar_t *format, ...)
 //
 void DebugInfo(const char* szInfo, bool bTime, bool bDebug, bool bPrint)
 {
+#ifdef _WIN32
 	if(!g_hMutex)
 		return;
 
@@ -224,10 +278,14 @@ void DebugInfo(const char* szInfo, bool bTime, bool bDebug, bool bPrint)
 
 		ReleaseMutex(g_hMutex);
 	} // end if - mutex
+#else
+        // todo
+#endif
 }
 
 void DebugInfoT(const TCHAR* szInfo, bool bTime, bool bDebug, bool bPrint)
 {
+#ifdef _WIN32
 	if(!g_hMutex)
 		return;
 
@@ -292,6 +350,9 @@ void DebugInfoT(const TCHAR* szInfo, bool bTime, bool bDebug, bool bPrint)
 
 		ReleaseMutex(g_hMutex);
 	} // end if - mutex
+#else
+        // todo
+#endif
 }
 
 //-----------------------------------------------------------------------------------
@@ -299,6 +360,7 @@ void DebugInfoT(const TCHAR* szInfo, bool bTime, bool bDebug, bool bPrint)
 //
 void GetDateTimeNow(char* buffer, bool bDate, bool bTime) 
 {
+#ifdef _WIN32
 	time_t rawtime;
 	struct tm timeinfo;
 	errno_t err;
@@ -321,10 +383,14 @@ void GetDateTimeNow(char* buffer, bool bDate, bool bTime)
 		return;
 
 	strftime(buffer, rSize, szFormat, &timeinfo);
+#else
+        // todo
+#endif
 }
 
 void GetDateTimeNowT(TCHAR* buffer, bool bDate, bool bTime)
 {
+#ifdef _WIN32
 	time_t rawtime;
 	struct tm timeinfo;
 	errno_t err;
@@ -347,5 +413,8 @@ void GetDateTimeNowT(TCHAR* buffer, bool bDate, bool bTime)
 		return;
 	
 	_tcsftime(buffer, rSize, szFormat, &timeinfo);
+#else
+        // todo
+#endif
 }
 

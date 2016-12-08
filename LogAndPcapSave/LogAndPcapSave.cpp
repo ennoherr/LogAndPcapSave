@@ -3,7 +3,13 @@
 
 #include "stdafx.h"
 
+#ifdef _WIN32
 #include <conio.h>
+#else
+#include "fcntl.h"
+#include "../conio/conio.h"
+//#include "Kbhit.h"
+#endif
 
 #include <queue>
 #include <iostream>
@@ -12,6 +18,7 @@
 #include "Settings.h"
 #include "LogData.h"
 #include "DbgView.h"
+//#include "LogCapture.h"
 #include "Search.h"
 #include "NetCapture.h"
 #include "Process.h"
@@ -19,15 +26,15 @@
 
 #include "Files.h"
 
-#ifndef SAFE_DELETE
-#define SAFE_DELETE(p) {if (p) {delete(p); p = NULL;}}
-#endif
 
 // global
 settings set;
 NetCapture *netCap = NULL;
+//DbgView *dbgCap = NULL;
+//LogCapture *logCap = NULL;
 DbgView *logCap = NULL;
 Search *s = NULL;
+
 
 int loadConfig(int argc, TCHAR** argv)
 {
@@ -67,8 +74,12 @@ int closeProcesses(void)
 {
 	int res = 0;
 	processes proc;
-	
-	for each (std::string p in set.getProcRunningList())
+
+//#ifdef _WIN32	
+//	for each (std::string p in set.getProcRunningList())
+//#else
+        for (auto p : set.getProcRunningList())
+//#endif
 	{
 		if (proc.isProcessRunning(p))
 		{
@@ -105,6 +116,7 @@ int stopCapture(void)
 	int res = 0;
 
 	// stop threads
+//        if (res == 0 && dbgCap != NULL) dbgCap->Stop();
 	if (res == 0 && logCap != NULL) logCap->Stop();
 	if (res == 0 && netCap != NULL) netCap->stopCaptureThread();
 
@@ -126,6 +138,9 @@ int startCapture(std::queue<DbgData> &data, std::mutex &mtxData)
 
 	if (res == 0 && logCap == NULL) logCap = new DbgView(&data, &mtxData);
 	else res = 2;
+        
+        if (res == 0 && set.getLogfile().length() > 0) logCap->setLogfile(set.getLogfile());
+        else res = 3;
 
 	// no nic selected -> exit
 	if (res == 0 && set.getNicToUse() == 0) res = 1;
@@ -162,7 +177,7 @@ int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
 	if (res == 0 && s == NULL)	s = new Search();
 	else res = 1;
 
-	if (res == 0)	res = s->startThread(netCap, data, mtxData, set.getFilename(), set.getLogInterval(), set.getFind());
+	if (res == 0)	res = s->startThread(netCap, &data, &mtxData, set.getFilename(), set.getLogInterval(), set.getFind());
 
 	return res;
 }
@@ -178,8 +193,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	// init
 	if (res == 0 && loadConfig(argc, argv) != 0)		res = 1;
-	if (res == 0 && multipleNic() != 0)					res = 2;
-	if (res == 0 && closeProcesses() != 0)				res = 3;
+	if (res == 0 && multipleNic() != 0)			res = 2;
+	if (res == 0 && closeProcesses() != 0)			res = 3;
 	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
 	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
 
@@ -193,9 +208,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	// main loop
 	while (res == 0 && !exit)
 	{
-		while (res == 0 && _kbhit())
+                while (res == 0 && _kbhit())
 		{
-			if (_gettch_nolock() == 'q') exit = true;
+#ifdef _WIN32
+                    if (_gettch_nolock() == 'q') exit = true;
+#else
+                    if (getch() == 'q') exit = true;
+#endif
 		}
 
 		res = checkHddSpace();
@@ -206,6 +225,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	// cleanup
 	stopAnalyze();
 	stopCapture();
+        
+        // just a new line
+        std::cout << std::endl;
 	
 	return 0;
 }

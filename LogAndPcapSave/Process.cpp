@@ -9,8 +9,17 @@
 #include <windows.h>
 #include <tlhelp32.h>
 #else
-// todo - includes for posix implementation - 16-05-30
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <streambuf>
+#include <fstream>
 #endif
+
+#include "dbgprint.h"
 
 #include "Process.h"
 
@@ -49,7 +58,68 @@ bool processes::isProcessRunning(const std::string processName)
 	CloseHandle(snapshot);
 
 #else
-	// todo - posix implementation - 16-05-30
+    DIR* dir;
+    struct dirent* ent;
+    char* endptr;
+    char buf[512];
+    
+    std::string path;
+    size_t len;
+
+    // an implementation for opendir will come with c++17
+    if (!(dir = opendir("/proc"))) 
+    {
+        dbgtprintf(_T("ERROR: cannot open /proc to read open processes!"));
+        return true;
+    }
+    
+    while ((ent = readdir(dir)) != NULL) 
+    {
+        // get and check for valid pid
+        path = ent->d_name;
+        if (path.find_first_not_of("0123456789") != std::string::npos)
+        {
+            continue;
+        }
+        
+        // try to open the cmdline file
+        std::ifstream file("/proc/" + path + "/cmdline");
+        
+        if (file.is_open())
+        {
+            file.read(buf, sizeof(buf));
+            path = buf;
+            
+            if (path.length())
+            {
+#ifdef _DEBUG
+                dbgtprintf(_T("path = %s"), path.c_str());
+#endif   
+                if (path.find(processName) != std::string::npos)
+                {
+                    exists = true;
+                    break;
+                }
+                
+//                // strip the prog from params and path
+//                len = path.find_first_of(" ");
+//                if (len != std::string::npos) path = path.substr(0, len);
+//                len = path.find_last_of("/") + 1;
+//                if (len != std::string::npos) path = path.substr(len);
+//                
+//                dbgtprintf(_T("len = %ld, path = %s"), len, path.c_str());
+//                
+//                // if process running
+//                if (path == processName)
+//                {
+//                    exists = true;                 
+//                    break;
+//                }
+            }
+        }
+    } // end while
+
+    closedir(dir);
 
 #endif
 

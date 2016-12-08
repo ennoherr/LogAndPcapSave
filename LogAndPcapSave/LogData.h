@@ -22,7 +22,6 @@ public:
 	long long timestamp_ms;
 	std::string time;
 
-	DWORD pid;
+	unsigned long pid;
 	std::string msg;
-
 };
