@@ -116,7 +116,7 @@ int NetCapture::startCaptureThread(const unsigned Interface, std::string fname, 
 	
 	int res = 0;
 
-	if (res == 0) res = setInterface(Interface);
+	if (res == 0) res = configInterface(Interface);
 	if (res == 0) worker = std::thread(&NetCapture::writeDump, this, fname, fMaxSizeMbyte);
 
 	if (worker.joinable())
@@ -207,7 +207,7 @@ int NetCapture::getInterfaces(std::vector<std::string> &adapters)
 	return res;
 }
 
-int NetCapture::setInterface(const unsigned Interface)
+int NetCapture::configInterface(const unsigned Interface)
 {
 	int res = 0;
 	pcap_if_t *iface = NULL;
@@ -221,7 +221,7 @@ int NetCapture::setInterface(const unsigned Interface)
 
 	if (res == 0 && (Interface < 1 || Interface > numOfIf))
 	{
-		dbgtprintf(_T("NetCapture::setAdapter ERROR: Interface out of range. Max. Interfaces = %d, Input No. = %d."), numOfIf, Interface);
+		dbgtprintf(_T("NetCapture::configInterface ERROR: Interface out of range. Max. Interfaces = %d, Input No. = %d."), numOfIf, Interface);
 		res = 1;
 	}
 
@@ -231,30 +231,69 @@ int NetCapture::setInterface(const unsigned Interface)
 #ifdef _WIN32
 	if (res == 0 && ((pcap = pcap_open(iface->name, 100, PCAP_OPENFLAG_PROMISCUOUS, 20, NULL, errbuf)) == NULL))
 	{
-		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open(...) returned with error msg = \'%s\'."), errbuf);
+		dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_open(...) returned with error msg = \'%s\'."), errbuf);
 		res = 2;
 	}
 #else
-//	if (res == 0 && ((pcap = pcap_open_live(iface->name, 100, 1, 1000, errbuf)) == NULL))
-//	{
-//		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open_live(...) returned with error msg = \'%s\'."), errbuf);
-//		res = 2;
-//	}
+        // different approach, since default settings return truncated packages
+        if (res == 0 && (pcap = pcap_create(iface->name, errbuf)) == NULL)
+        {
+                dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_create(...) returned with error msg = \'%s\'."), errbuf);
+                res = 2;
+        }
         
-        if (res == 0 && pcap == NULL)
+        // set the interface
+        // max size of packet
+        if (res == 0 && (res = pcap_set_snaplen(pcap, 65535) != 0))
         {
-            pcap = pcap_create(iface->name, errbuf);
+                dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_set_snaplen(...) returned with error = %d."), res);
+                res = 3;
         }
-        if (res == 0 && pcap != NULL)
+        
+        // promiscous enabled
+        if (res == 0 && (res = pcap_set_promisc(pcap, 1) != 0))
         {
-                int r = 0;
-                r = pcap_set_snaplen(pcap, 65535);
-                r = pcap_set_promisc(pcap, 0);
-                r = pcap_set_timeout(pcap, 1000);
-                r = pcap_set_buffer_size(pcap, 16<<20); // 16MB
-                r = pcap_setnonblock(pcap, 0, errbuf);
-                r = pcap_activate(pcap);            
+                dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_set_promisc(...) returned with error = %d."), res);
+                res = 3;
         }
+        
+        // timeout
+        if (res == 0 && (res = pcap_set_timeout(pcap, 1000) != 0))
+        {
+                dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_set_timeout(...) returned with error = %d."), res);
+                res = 3;
+        }
+        
+        // buffer = 16MB
+        if (res == 0 && (res = pcap_set_buffer_size(pcap, 16<<20) != 0))
+        {
+                dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_set_buffer_size(...) returned with error = %d."), res);
+                res = 3;
+        }
+        
+        if (res == 0 && (res = pcap_activate(pcap)) != 0)
+        {
+                dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_activate(...) returned with error = %d."), res);
+                res = 4;
+        }
+        
+        // nonblocking - according to doc it has to be set after activation
+#ifdef _DEBUG
+        int block = pcap_getnonblock(pcap, errbuf);
+        dbgtprintf(_T("NetCapture::configInterface MSG | ERROR: pcap_getnonblock(...) returned with block = %d, msg = \'%s\'."), block, errbuf);
+#endif
+        
+        if (res == 0 && (res = pcap_setnonblock(pcap, 1, errbuf) != 0))
+        {
+                dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_setnonblock(...) returned with error = %d, msg = \'%s\'."), res, errbuf);
+                res = 3;
+        }        
+
+#ifdef _DEBUG        
+        block = pcap_getnonblock(pcap, errbuf);
+        dbgtprintf(_T("NetCapture::configInterface MSG | ERROR: pcap_getnonblock(...) returned with block = %d, msg = \'%s\'."), block, errbuf);
+#endif
+        
 #endif
 
 	return res;
