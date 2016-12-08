@@ -32,7 +32,7 @@ public:
 
 private:
 	pcap_if_t *interfaces;
-	pcap_t *selectedIf;
+	pcap_t *pcap;
 	unsigned int numOfIf;
 
 	std::thread worker;

@@ -7,10 +7,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/Search.cpp</file>
-            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/DbgView.h</file>
             <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/NetCapture.cpp</file>
-            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/DbgView.cpp</file>
+            <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/Settings.cpp</file>
             <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/LogAndPcapSave.cpp</file>
             <file>file:/home/noyes/develop/LogAndPcapSave/LogAndPcapSave/Tail.h</file>
         </group>

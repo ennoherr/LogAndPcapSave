@@ -23,7 +23,7 @@
 
 NetCapture::NetCapture(void)
 	: interfaces(NULL)
-	, selectedIf(NULL)
+	, pcap(NULL)
 	, numOfIf(0)
 	, worker()
 	, isThreadRunning(false)
@@ -99,7 +99,7 @@ int NetCapture::cleanup(void)
 	{
 		pcap_freealldevs(interfaces);
 		interfaces = NULL;
-		selectedIf = NULL;
+		pcap = NULL;
 		numOfIf = 0;
 	}
 
@@ -229,17 +229,32 @@ int NetCapture::setInterface(const unsigned Interface)
 	if (res == 0) for (iface = interfaces, i = 0; i < Interface-1; iface = iface->next, i++);
 
 #ifdef _WIN32
-	if (res == 0 && ((selectedIf = pcap_open(iface->name, 100, PCAP_OPENFLAG_PROMISCUOUS, 20, NULL, errbuf)) == NULL))
+	if (res == 0 && ((pcap = pcap_open(iface->name, 100, PCAP_OPENFLAG_PROMISCUOUS, 20, NULL, errbuf)) == NULL))
 	{
 		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open(...) returned with error msg = \'%s\'."), errbuf);
 		res = 2;
 	}
 #else
-	if (res == 0 && ((selectedIf = pcap_open_live(iface->name, 100, 1, 1000, errbuf)) == NULL))
-	{
-		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open_live(...) returned with error msg = \'%s\'."), errbuf);
-		res = 2;
-	}
+//	if (res == 0 && ((pcap = pcap_open_live(iface->name, 100, 1, 1000, errbuf)) == NULL))
+//	{
+//		dbgtprintf(_T("NetCapture::setAdapter ERROR: pcap_open_live(...) returned with error msg = \'%s\'."), errbuf);
+//		res = 2;
+//	}
+        
+        if (res == 0 && pcap == NULL)
+        {
+            pcap = pcap_create(iface->name, errbuf);
+        }
+        if (res == 0 && pcap != NULL)
+        {
+                int r = 0;
+                r = pcap_set_snaplen(pcap, 65535);
+                r = pcap_set_promisc(pcap, 0);
+                r = pcap_set_timeout(pcap, 1000);
+                r = pcap_set_buffer_size(pcap, 16<<20); // 16MB
+                r = pcap_setnonblock(pcap, 0, errbuf);
+                r = pcap_activate(pcap);            
+        }
 #endif
 
 	return res;
@@ -269,17 +284,17 @@ int NetCapture::writeDump(std::string fname, long long fMaxSizeMbyte)
 		res = initInterfaces();
 	}
 
-	if (res == 0 && selectedIf == NULL)
+	if (res == 0 && pcap == NULL)
 	{
 		dbgtprintf(_T("NetCapture::writeDump ERROR: No Interface selected, use setInterface(...) first."));
 		res = 1;
 	}
-
+        
 	while (res == 0 && isThreadRunning)
 	{	
 		DumpFile = fname + "_" + std::to_string(ti.getTimestampMs()) + ti.getTimeReadableMs("_", "-", "-") + ".pcap";
 	
-		if (res == 0 && (pDumpfile = pcap_dump_open(selectedIf, DumpFile.c_str())) == NULL)
+		if (res == 0 && (pDumpfile = pcap_dump_open(pcap, DumpFile.c_str())) == NULL)
 		{
 			dbgtprintf(_T("NetCapture::WriteDump ERROR: pcap_dump_open(...) returned null."));
 			res = 2;
@@ -288,7 +303,7 @@ int NetCapture::writeDump(std::string fname, long long fMaxSizeMbyte)
 		//start the capture
 		if (res == 0)
 		{
-			while((iWrite = pcap_next_ex(selectedIf, &pHeader, &pPktData)) >= 0 && isThreadRunning)
+			while((iWrite = pcap_next_ex(pcap, &pHeader, &pPktData)) >= 0 && isThreadRunning)
 			{
 				// timeout
 				if(iWrite == 0)
