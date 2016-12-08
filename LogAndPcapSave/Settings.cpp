@@ -13,7 +13,7 @@
 
 
 settings::settings(void)
-	: version("1.0.0.4 - Build 2016-06-17")
+	: version("0.9.0.1 - Build 2016-12-08")
 	, fname("out")
 	, find("")
         , logfile("")
@@ -36,24 +36,25 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 		return -1;
 	}
 
+	int a = 0;
 	unsigned int i = 0;
         std::vector<tstring> args;
 	UniConvert uc;
 
         // copy argv values to vector, makes life easier...
-	for (i = 0; i < argc; i++)
+	for (a = 0; a < argc; a++)
 	{
-                args.push_back(argv[i]);
-        }
+		args.push_back(argv[a]);
+	}
         
 #ifdef _DEBUG
-        for (i = 0; i < args.size(); i++)
-        {
+	for (i = 0; i < args.size(); i++)
+	{
 		dbgtprintf(_T("args[%d] = \'%s\'"), i, args.at(i).c_str());
 	}
 #endif
 
-        // parse values 
+	// parse values 
 	for (i = 0; i < args.size(); i++)
 	{
                 // compare to capitalized params

@@ -34,18 +34,21 @@
 
 hddMgmt::hddMgmt(void)
 #ifdef _WIN32
-	// bytes available to caller
-	: m_uliFreeBytesAvailable.QuadPart(0L)
-	// bytes on disk
-	, m_uliTotalNumberOfBytes.QuadPart(0L)
-	// free bytes on disk
-	, m_uliTotalNumberOfFreeBytes.QuadPart(0L)
+	// see below
 #else
         : freeBytes_(0)
         , totalBytes_(0)
         , totalFreeBytes_(0)
 #endif
 {
+#ifdef _WIN32
+	// bytes available to caller
+	m_uliFreeBytesAvailable.QuadPart = 0L;
+	// bytes on disk
+	m_uliTotalNumberOfBytes.QuadPart = 0L;
+	// free bytes on disk
+	m_uliTotalNumberOfFreeBytes.QuadPart = 0L;
+#endif // _WIN32
 }
 
 

@@ -231,7 +231,11 @@ std::string UniConvert::ws2s(const std::wstring& wstr)
     return converterX.to_bytes(wstr);
 #else    
     // http://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string
-    std::setlocale(LC_ALL, "");
+#ifdef _WIN32
+	setlocale(LC_ALL, "");
+#else
+	std::setlocale(LC_ALL, "");
+#endif
     //const std::wstring wstr = L"ħëłlö";
     const std::locale locale("");
     
@@ -244,10 +248,9 @@ std::string UniConvert::ws2s(const std::wstring& wstr)
     char* to_next;
     const converter_type::result result = converter.out(state, wstr.data(), wstr.data() + wstr.length(), from_next, &to[0], &to[0] + to.size(), to_next);
     
-    if (result == converter_type::ok or result == converter_type::noconv) 
+    if (result == converter_type::ok || result == converter_type::noconv) 
     {
         const std::string s(&to[0], to_next);
-        std::cout << "std::string =     " << s << std::endl;
         return s;
     }
     

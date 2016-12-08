@@ -48,7 +48,7 @@
 
 DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
 	: logfile("")
-        , worker()
+    , worker()
 	, isThreadRunning(false)
 	, data(NULL)
 	, mtx(NULL)
@@ -298,8 +298,8 @@ void DbgView::EventThreadRoutine(void)
         } // end if logfile.length == 0
         else
         {
-            struct stat buf;
-            long long fileSize;
+			struct stat buf = { 0 };
+            long long fileSize = 0L;
             Tail tail(logfile);
             
             while (isThreadRunning)
