@@ -29,11 +29,11 @@
 
 // global
 settings set;
-NetCapture *netCap = NULL;
+NetCapture* netCap = NULL;
 //DbgView *dbgCap = NULL;
 //LogCapture *logCap = NULL;
-DbgView *logCap = NULL;
-Search *s = NULL;
+DbgView* logCap = NULL;
+Search* s = NULL;
 
 
 int loadConfig(int argc, TCHAR** argv)
@@ -75,11 +75,11 @@ int closeProcesses(void)
 	int res = 0;
 	processes proc;
 
-//#ifdef _WIN32	
-//	for each (std::string p in set.getProcRunningList())
-//#else
-        for (auto p : set.getProcRunningList())
-//#endif
+	//#ifdef _WIN32	
+	//	for each (std::string p in set.getProcRunningList())
+	//#else
+	for (auto p : set.getProcRunningList())
+		//#endif
 	{
 		if (proc.isProcessRunning(p))
 		{
@@ -127,18 +127,18 @@ int stopCapture(void)
 }
 
 // start captue threads
-int startCapture(std::queue<DbgData> &data, std::mutex &mtxData)
+int startCapture(std::queue<DbgData>& data, std::mutex& mtxData)
 {
 	int res = 0;
-	
+
 	if (res == 0 && netCap != NULL || logCap != NULL) stopCapture();
-	
+
 	if (res == 0 && netCap == NULL) netCap = new NetCapture();
 	else res = 1;
 
 	if (res == 0 && logCap == NULL) logCap = new DbgView(&data, &mtxData);
 	else res = 2;
-        
+
 	if (res == 0 && set.getLogfile().length() > 0) logCap->setLogfile(set.getLogfile());
 
 	// no nic selected -> exit
@@ -169,7 +169,7 @@ int stopAnalyze(void)
 	return res;
 }
 
-int startAnalyze(std::queue<DbgData> &data, std::mutex &mtxData)
+int startAnalyze(std::queue<DbgData>& data, std::mutex& mtxData)
 {
 	int res = 0;
 
@@ -189,11 +189,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::mutex mtxData;
 
 	std::cout << "LogAndPcapSave starting... (please wait)" << std::endl;
-	
+
 	// init
 	if (res == 0 && loadConfig(argc, argv) != 0)		res = 1;
-	if (res == 0 && multipleNic() != 0)			res = 2;
-	if (res == 0 && closeProcesses() != 0)			res = 3;
+	if (res == 0 && multipleNic() != 0)					res = 2;
+	if (res == 0 && closeProcesses() != 0)				res = 3;
 	if (res == 0 && startCapture(data, mtxData) != 0)	res = 4;
 	if (res == 0 && startAnalyze(data, mtxData) != 0)	res = 5;
 
@@ -207,12 +207,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	// main loop
 	while (res == 0 && !exit)
 	{
-                while (res == 0 && _kbhit())
+		while (res == 0 && _kbhit())
 		{
 #ifdef _WIN32
-                    if (_gettch_nolock() == 'q') exit = true;
+			if (_gettch_nolock() == 'q') exit = true;
 #else
-                    if (getch() == 'q') exit = true;
+			if (getch() == 'q') exit = true;
 #endif
 		}
 
@@ -224,10 +224,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	// cleanup
 	stopAnalyze();
 	stopCapture();
-        
-        // just a new line
-        std::cout << std::endl;
-	
+
+	// just a new line
+	std::cout << std::endl;
+
 	return 0;
 }
 
