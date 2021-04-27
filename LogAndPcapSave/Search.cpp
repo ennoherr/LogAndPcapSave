@@ -22,8 +22,8 @@
 
 
 Search::Search(void)
-	: worker()
-	, isThreadRunning(false)
+	: Worker()
+	, IsThreadRunning(false)
 {
 }
 
@@ -31,29 +31,24 @@ Search::~Search(void)
 {
 }
 
-int Search::startThread(NetCapture *netCap, std::queue<DbgData> *data, std::mutex *mtxData, std::string filename, std::string interval, std::string find)
+int Search::startThread(NetCapture* netCap, std::queue<DbgData>* data, std::mutex* mtxData, std::string filename, std::string interval, std::string find)
 {
-	if (isThreadRunning)
+	if (IsThreadRunning)
 	{
-		dbgtprintf(_T("Search::startThread ERROR: thread already running with ID: 0x%lx"), worker.get_id());
+		dbgtprintf(_T("Search::startThread ERROR: thread already running with ID: 0x%lx"), Worker.get_id());
 		return -1;
 	}
 
 	int res = 0;
 
-	// converted to lamda, since microsoft threads cannot proceed so many params - 16-05-14
-#ifdef _WIN32
-	if (res == 0) worker = std::thread([&]() { searchData(netCap, data, mtxData, filename, interval, find); });
-#else
-        if (res == 0) worker = std::thread(&Search::searchData, this, netCap, data, mtxData, filename, interval, find);
-#endif
-        
-	if (worker.joinable())
+	if (res == 0) Worker = std::thread(&Search::searchData, this, netCap, data, mtxData, filename, interval, find);
+
+	if (Worker.joinable())
 	{
-		isThreadRunning = true;
+		IsThreadRunning = true;
 		res = 0;
 
-		dbgtprintf(_T("Search::startThread STATUS: thread started with ID: 0x%lx"), worker.get_id());
+		dbgtprintf(_T("Search::startThread STATUS: thread started with ID: 0x%lx"), Worker.get_id());
 	}
 	else
 	{
@@ -68,10 +63,10 @@ int Search::stopThread(void)
 {
 	int res = 0;
 
-	if (worker.joinable())
+	if (Worker.joinable())
 	{
-		isThreadRunning = false;
-		worker.join();
+		IsThreadRunning = false;
+		Worker.join();
 
 		dbgtprintf(_T("Search::startThread STATUS: thread stopped"));
 	}
@@ -84,29 +79,29 @@ int Search::stopThread(void)
 	return res;
 }
 
-int Search::searchData(NetCapture *netCap, std::queue<DbgData> *data, std::mutex *mtxData, std::string filename, std::string interval, std::string find)
+int Search::searchData(NetCapture* netCap, std::queue<DbgData>* data, std::mutex* mtxData, std::string filename, std::string interval, std::string find)
 {
 	// startup delay
 	for (int i = 0; i < 32; i++)
 	{
-		if (isThreadRunning) break;
+		if (IsThreadRunning) break;
 		else std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
 	int res = 0;
 	std::string line = "";
-	FileMgmt *allData = new FileMgmt();
-	FileMgmt *filterData = new FileMgmt();
+	FileMgmt* allData = new FileMgmt();
+	FileMgmt* filterData = new FileMgmt();
 
-	while (isThreadRunning)
+	while (IsThreadRunning)
 	{
 		if (data->size() > 0)
 		{
-                        mtxData->lock();
+			mtxData->lock();
 			DbgData dd = data->front();
 			data->pop();
-                        mtxData->unlock();
-                        
+			mtxData->unlock();
+
 			line = std::to_string(dd.timestamp_ms) + ";" + dd.time + ";" + std::to_string(dd.pid) + ";" + dd.msg;
 
 			//wcout << line << endl;
@@ -120,7 +115,7 @@ int Search::searchData(NetCapture *netCap, std::queue<DbgData> *data, std::mutex
 				netCap->safeCurrentDump();
 			}
 		}
-		
+
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}

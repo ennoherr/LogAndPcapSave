@@ -173,10 +173,10 @@ int startAnalyze(std::queue<DbgData>& data, std::mutex& mtxData)
 {
 	int res = 0;
 
-	if (res == 0 && s == NULL)	s = new Search();
+	if (res == 0 && s == NULL) s = new Search();
 	else res = 1;
 
-	if (res == 0)	res = s->startThread(netCap, &data, &mtxData, set.getFilename(), set.getLogInterval(), set.getFind());
+	if (res == 0) res = s->startThread(netCap, &data, &mtxData, set.getFilename(), set.getLogInterval(), set.getFind());
 
 	return res;
 }
@@ -218,7 +218,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		res = checkHddSpace();
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
 	// cleanup

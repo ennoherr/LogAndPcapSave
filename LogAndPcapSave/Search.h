@@ -16,8 +16,8 @@ public:
 	int stopThread(void);
 
 private:
-	std::thread worker;
-	std::atomic<bool> isThreadRunning;
+	std::thread Worker;
+	std::atomic<bool> IsThreadRunning;
 
 	int searchData(NetCapture *netCap, std::queue<DbgData> *data, std::mutex *mtxData, std::string filename, std::string interval, std::string find);
 	bool isInString(std::string hay, std::string needle);
