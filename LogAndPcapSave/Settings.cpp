@@ -13,12 +13,13 @@
 
 
 settings::settings(void)
-	: version("0.9.0.1 - Build 2016-12-08")
+	: version("1.1.0.0 - Build 2021-04-27")
 	, fname("out")
 	, find("")
 	, logfile("")
 	, logfileInterval("day")
 	, nicToUse(1)
+	, nicIsSet(false)
 	, nicCount(1)
 	, pcapMaxSize(100)
 {

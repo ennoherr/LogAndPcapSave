@@ -7,3 +7,6 @@ Safe Pcap files depending on event in Log or DbgView
 
 Todo
 - better search options, e.g. with asterisk
+
+Required
+- Install Npcap from https://nmap.org/npcap/
