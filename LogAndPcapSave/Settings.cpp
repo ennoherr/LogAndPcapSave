@@ -123,14 +123,14 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 			std::cout << "Usage: " << std::endl;
 			std::cout << "-l :: List all NICs" << std::endl;
 			std::cout << "-i <num> :: number of NIC to be captured, default = 1" << std::endl;
-			std::cout << "-f <string> :: path to log file, if empty DbgOut (only Windows) will be used, mandatory on Linux, default = \"\"";
+			std::cout << "-f <string> :: path to log file, if empty DbgOut (only Windows) will be used, mandatory on Linux, default = \"\"" << std::endl;
 			std::cout << "-o <string> :: prefix for output files, default = out" << std::endl;
 			std::cout << "-oi <string> :: interval for log file, values = none, hour, day, default = day" << std::endl;
 			std::cout << "-s <string> :: string to search (if empty only debug output to file, dump will be deleted), default = \"\"" << std::endl;
 			std::cout << "-pcapmax <int> :: max size of pcap file [in MB], default = 100" << std::endl;
 			std::cout << std::endl;
 
-			std::cout << "Usage example: LogVsPcapTracer -f error" << std::endl;
+			std::cout << "Usage example: LogVsPcapTracer -s error" << std::endl;
 			std::cout << std::endl;
 
 			// we can exit the loop here
