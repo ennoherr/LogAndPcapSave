@@ -59,7 +59,7 @@ int FileMgmt::writeToFile(std::string fname, std::string line, std::string inter
 	{
 		filename = fname + "_" + ti->getTimeReadableMs("_", "-", "-") + ".log";
 	}
-	
+
 	std::ios_base::openmode om = (newFile) ? (std::ios_base::out) : (std::ios_base::out | std::ios_base::app);
 	std::ofstream ofs(filename, om);
 

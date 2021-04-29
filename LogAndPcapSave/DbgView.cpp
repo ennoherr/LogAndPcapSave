@@ -27,15 +27,15 @@
 
 
 #ifndef STRING_LENGTH
-	#define STRING_LENGTH 1024
+#define STRING_LENGTH 1024
 #endif
 
 #ifndef SAFE_DELETE
-	#define SAFE_DELETE(p) {if (p) {delete(p); p = NULL;}}
+#define SAFE_DELETE(p) {if (p) {delete(p); p = NULL;}}
 #endif
 
 #ifndef SAFE_HANDLE
-	#define SAFE_HANDLE(p) {if (p) {CloseHandle(p); p = NULL;}}
+#define SAFE_HANDLE(p) {if (p) {CloseHandle(p); p = NULL;}}
 #endif
 
 
@@ -46,9 +46,9 @@
 /// <remarks>	Enno Herr, 30.06.2016. </remarks>
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
+DbgView::DbgView(std::queue<DbgData>* dataInOut, std::mutex* mtxInOut)
 	: logfile("")
-    , worker()
+	, worker()
 	, isThreadRunning(false)
 	, data(NULL)
 	, mtx(NULL)
@@ -56,7 +56,7 @@ DbgView::DbgView(std::queue<DbgData> *dataInOut, std::mutex *mtxInOut)
 {
 	data = dataInOut;
 	mtx = mtxInOut;
-}	  
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>	Destructor. </summary>
@@ -77,7 +77,7 @@ DbgView::~DbgView(void)
 
 void DbgView::setLogfile(const std::string file)
 {
-    logfile = file;
+	logfile = file;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,21 +131,21 @@ int DbgView::Stop(void)
 	if (worker.joinable())
 	{
 #ifdef _WIN32
-            assert(readyEvent != INVALID_HANDLE_VALUE);
-            SetEvent(readyEvent);
+		assert(readyEvent != INVALID_HANDLE_VALUE);
+		SetEvent(readyEvent);
 #endif
-            SAFE_HANDLE(readyEvent);
+		SAFE_HANDLE(readyEvent);
 
-            isThreadRunning = false;
-            worker.join();
-		
-            dbgtprintf(_T("DbgView::Stop STATUS: thread stopped"));
+		isThreadRunning = false;
+		worker.join();
+
+		dbgtprintf(_T("DbgView::Stop STATUS: thread stopped"));
 	}
 	else
 	{
-            res = 1;
+		res = 1;
 
-            dbgtprintf(_T("DbgView::Stop WARNING: thread not running."));
+		dbgtprintf(_T("DbgView::Stop WARNING: thread not running."));
 	}
 
 	return res;
@@ -172,182 +172,182 @@ void DbgView::EventThreadRoutine(void)
 
 	unsigned int res = 0;
 	std::string temp = "";
-        
-      	TimeInfo TI;
-        
-        // no logfile, use OutputDebug (only WIN32)
-        if (logfile.length() == 0)
-        {
-#ifdef _WIN32        
-	HANDLE hAckEvent = INVALID_HANDLE_VALUE;
-	HANDLE SharedFile = INVALID_HANDLE_VALUE;
-	DBG_BUFFER* pDB = NULL;
-	SECURITY_ATTRIBUTES sa = { 0 };
-	SECURITY_DESCRIPTOR sd = { 0 };
 
-	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	sa.bInheritHandle = TRUE;
-	sa.lpSecurityDescriptor = &sd;
+	TimeInfo TI;
 
-	while (isThreadRunning)
+	// no logfile, use OutputDebug (only WIN32)
+	if (logfile.length() == 0)
 	{
-		try
+#ifdef _WIN32        
+		HANDLE hAckEvent = INVALID_HANDLE_VALUE;
+		HANDLE SharedFile = INVALID_HANDLE_VALUE;
+		DBG_BUFFER* pDB = NULL;
+		SECURITY_ATTRIBUTES sa = { 0 };
+		SECURITY_DESCRIPTOR sd = { 0 };
+
+		sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+		sa.bInheritHandle = TRUE;
+		sa.lpSecurityDescriptor = &sd;
+
+		while (isThreadRunning)
 		{
-			// Set the thread to a high priority because the debug strings
-			// being sent by the debugged app can make it wait if
-			// we don't grab the events quickly enough.
-			if (res == 0 && !SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
+			try
 			{
-				res = 1;
-			}
-
-			// init
-			if (res == 0 && !InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
-			{
-				res = 2;
-			}
-			if (res == 0 && !SetSecurityDescriptorDacl(&sd, TRUE, (PACL)NULL, FALSE))
-			{
-				res = 3;
-			}
-			if (res == 0 && !(hAckEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_BUFFER_READY"))))
-			{
-				res = 4;
-			}
-			if (res == 0 && GetLastError() == ERROR_ALREADY_EXISTS)
-			{
-				res = 5;
-			}
-			if (res == 0 && !(readyEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_DATA_READY"))))
-			{
-				res = 6;
-			}
-			if (res == 0 && !(SharedFile = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, sizeof(DBG_BUFFER), _T("DBWIN_BUFFER"))))
-			{
-				res = 7;
-			}
-			if (res == 0 && !(pDB = (DBG_BUFFER*)MapViewOfFile(SharedFile, FILE_MAP_READ, 0, 0, 0)))
-			{
-				res = 8;
-			}
-
-			if (res == 0)
-			{
-				SetEvent(hAckEvent);
-
-				// loop - get data and write it to queue
-				while (isThreadRunning)
+				// Set the thread to a high priority because the debug strings
+				// being sent by the debugged app can make it wait if
+				// we don't grab the events quickly enough.
+				if (res == 0 && !SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 				{
-					if (WaitForSingleObject(readyEvent, INFINITE) != WAIT_OBJECT_0)
-					{
-						break;
-					}
+					res = 1;
+				}
 
-					//printf("%d, %s", pDB->dwPid, pDB->abData);
+				// init
+				if (res == 0 && !InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
+				{
+					res = 2;
+				}
+				if (res == 0 && !SetSecurityDescriptorDacl(&sd, TRUE, (PACL)NULL, FALSE))
+				{
+					res = 3;
+				}
+				if (res == 0 && !(hAckEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_BUFFER_READY"))))
+				{
+					res = 4;
+				}
+				if (res == 0 && GetLastError() == ERROR_ALREADY_EXISTS)
+				{
+					res = 5;
+				}
+				if (res == 0 && !(readyEvent = CreateEvent(&sa, FALSE, FALSE, _T("DBWIN_DATA_READY"))))
+				{
+					res = 6;
+				}
+				if (res == 0 && !(SharedFile = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, sizeof(DBG_BUFFER), _T("DBWIN_BUFFER"))))
+				{
+					res = 7;
+				}
+				if (res == 0 && !(pDB = (DBG_BUFFER*)MapViewOfFile(SharedFile, FILE_MAP_READ, 0, 0, 0)))
+				{
+					res = 8;
+				}
+
+				if (res == 0)
+				{
+					SetEvent(hAckEvent);
+
+					// loop - get data and write it to queue
+					while (isThreadRunning)
+					{
+						if (WaitForSingleObject(readyEvent, INFINITE) != WAIT_OBJECT_0)
+						{
+							break;
+						}
+
+						//printf("%d, %s", pDB->dwPid, pDB->abData);
+
+						DbgData dd;
+						dd.time = TI.getTimeReadableMs();
+						dd.timestamp_ms = TI.getTimestampMs();
+						dd.pid = pDB->dwPid;
+						temp = reinterpret_cast<const char*>(pDB->abData);
+						// some strings are too long causing an std::range_error exception when converting to string
+						if (temp.length() > 1024) temp = temp.substr(0, 1024);
+						dd.msg = removeCRLF(temp);
+
+						mtx->lock();
+						data->push(dd);
+						mtx->unlock();
+
+						// Ready for new event
+						SetEvent(hAckEvent);
+
+					} // end while
+				}
+			}
+			catch (std::exception e)
+			{
+				dbgprintf("DbgView::EventThreadRoutine EXCEPTION: EventThreadRoutine(), caught = %s, type = %s", e.what(), typeid(e).name());
+				res = 99;
+			}
+
+			// cleanup
+			SAFE_HANDLE(hAckEvent);
+
+			if (pDB)
+			{
+				UnmapViewOfFile(pDB);
+				pDB = NULL;
+			}
+			SAFE_HANDLE(SharedFile);
+
+			if (res > 0)
+			{
+				dbgtprintf(_T("DbgView::EventThreadRoutine ERROR: An error occured, res = %d, ErrorCode = %d"), res, GetLastError());
+
+				// wait 10 sec before restarting the loop
+				std::this_thread::sleep_for(std::chrono::milliseconds(10 * 1000));
+				res = 0;
+			}
+
+		} // end while
+
+
+		dbgtprintf(_T("DbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), worker.get_id());
+#endif
+		dbgtprintf(_T("ERROR: On Posix systems a log file must be given!"));
+	} // end if logfile.length == 0
+	else
+	{
+		struct stat buf = { 0 };
+		long long fileSize = 0L;
+		Tail tail(logfile);
+
+		while (isThreadRunning)
+		{
+			// check for changes
+			stat(logfile.c_str(), &buf);
+
+			// on change
+			if (buf.st_size != fileSize)
+			{
+				// remember filesize
+				fileSize = buf.st_size;
+
+				// get changed data
+				tail.OnChange();
+				temp = tail.GetChangesAsString();
+
+				// treat every line in temp individually
+				std::vector<std::string> v = split(temp, '\n');
+
+				for (auto s : v)
+				{
+					s = removeCRLF(s);
+
+					// no empty lines
+					if (s.length() == 0)
+						continue;
 
 					DbgData dd;
 					dd.time = TI.getTimeReadableMs();
 					dd.timestamp_ms = TI.getTimestampMs();
-					dd.pid = pDB->dwPid;
-					temp = reinterpret_cast<const char*>(pDB->abData);
+					dd.pid = 0;
+
 					// some strings are too long causing an std::range_error exception when converting to string
-					if (temp.length() > 1024) temp = temp.substr(0, 1024);
-					dd.msg = removeCRLF(temp);
+					if (s.length() > 1024) s = s.substr(0, 1024);
+					dd.msg = s;
 
 					mtx->lock();
 					data->push(dd);
 					mtx->unlock();
-
-					// Ready for new event
-					SetEvent(hAckEvent);
-
-				} // end while
+				}
 			}
-		}
-		catch(std::exception e)
-		{
-			dbgprintf("DbgView::EventThreadRoutine EXCEPTION: EventThreadRoutine(), caught = %s, type = %s", e.what(), typeid(e).name());
-			res = 99;
-		}
 
-		// cleanup
-		SAFE_HANDLE(hAckEvent);
-	
-		if (pDB)
-		{
-			UnmapViewOfFile(pDB);
-			pDB = NULL;
-		}
-		SAFE_HANDLE(SharedFile);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-		if (res > 0)
-		{
-			dbgtprintf(_T("DbgView::EventThreadRoutine ERROR: An error occured, res = %d, ErrorCode = %d"), res, GetLastError());
-			
-			// wait 10 sec before restarting the loop
-			std::this_thread::sleep_for(std::chrono::milliseconds(10*1000));
-			res = 0;
-		}
-
-	} // end while
-
-
-	dbgtprintf(_T("DbgView::EventThreadRoutine STATUS: Exit thread with ID: 0x%lx"), worker.get_id());
-#endif
-            dbgtprintf(_T("ERROR: On Posix systems a log file must be given!"));
-        } // end if logfile.length == 0
-        else
-        {
-			struct stat buf = { 0 };
-            long long fileSize = 0L;
-            Tail tail(logfile);
-            
-            while (isThreadRunning)
-            {
-                // check for changes
-                stat(logfile.c_str(), &buf);
-
-                // on change
-                if (buf.st_size != fileSize)
-                {
-                    // remember filesize
-                    fileSize = buf.st_size;
-                    
-                    // get changed data
-                    tail.OnChange();
-                    temp = tail.GetChangesAsString();
-                                        
-                    // treat every line in temp individually
-                    std::vector<std::string> v = split(temp, '\n');
-                    
-                    for (auto s : v)
-                    {
-                        s = removeCRLF(s);
-                        
-                        // no empty lines
-                        if (s.length() == 0) 
-                            continue;
-                        
-                        DbgData dd;
-                        dd.time = TI.getTimeReadableMs();
-                        dd.timestamp_ms = TI.getTimestampMs();
-                        dd.pid = 0;
-
-                        // some strings are too long causing an std::range_error exception when converting to string
-                        if (s.length() > 1024) s = s.substr(0, 1024);
-                        dd.msg = s;
-
-                        mtx->lock();
-                        data->push(dd);
-                        mtx->unlock();
-                    }
-                }
-                
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                
-            } // end - while
+		} // end - while
 	} // end - if-else logfile
-        
+
 	// in case thread has exited for other reasons
 	isThreadRunning = false;
 }
@@ -371,18 +371,18 @@ std::string DbgView::removeCRLF(std::string str)
 }
 
 
-std::vector<std::string> DbgView::split(const std::string &s, char delim) 
+std::vector<std::string> DbgView::split(const std::string& s, char delim)
 {
-    std::vector<std::string> elems;
-    std::stringstream ss;
-    std::string item;
-    
-    ss.str(s);
+	std::vector<std::string> elems;
+	std::stringstream ss;
+	std::string item;
 
-    while (std::getline(ss, item, delim)) 
-    {
-        elems.push_back(item);
-    }
-    
-    return elems;
+	ss.str(s);
+
+	while (std::getline(ss, item, delim))
+	{
+		elems.push_back(item);
+	}
+
+	return elems;
 }

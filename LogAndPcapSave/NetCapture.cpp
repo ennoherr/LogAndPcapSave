@@ -191,8 +191,13 @@ int NetCapture::getInterfaces(std::vector<std::string>& adapters)
 	{
 		for (iface = interfaces; iface != NULL; iface = iface->next)
 		{
-			//adapters.push_back(iface->description);
-			adapters.push_back(iface->name);
+			std::string adapter = std::string(iface->name);
+			if (iface->description) {
+				adapter += std::string(" (");
+				adapter += std::string(iface->description);
+				adapter += std::string(")");
+			}
+			adapters.push_back(adapter);
 
 #ifdef _DEBUG
 			printf("NetCapture::getInterfaces DEBUG: %s - desc: ", iface->name);
@@ -229,7 +234,7 @@ int NetCapture::configInterface(const unsigned Interface)
 	if (res == 0) for (iface = interfaces, i = 0; i < Interface - 1; iface = iface->next, i++);
 
 #ifdef _WIN32
-	if (res == 0 && ((pcap = pcap_open(iface->name, 100, PCAP_OPENFLAG_PROMISCUOUS, 20, NULL, errbuf)) == NULL))
+	if (res == 0 && ((pcap = pcap_open(iface->name, 65536, PCAP_OPENFLAG_PROMISCUOUS, 1000, NULL, errbuf)) == NULL))
 	{
 		dbgtprintf(_T("NetCapture::configInterface ERROR: pcap_open(...) returned with error msg = \'%s\'."), errbuf);
 		res = 2;

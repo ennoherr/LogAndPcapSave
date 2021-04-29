@@ -1,8 +1,5 @@
 #pragma once
 
-// stackoverflow.com/questions/3687759/monitoring-a-file-for-changes
-
-
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -41,7 +38,7 @@ public:
 			std::streampos fend_new = f.tellg();
 
 			// data added/removed or first time run
-			if (fend_new > fend_  || fend_new < fend_) // || firstRun_)
+			if (fend_new > fend_ || fend_new < fend_) // || firstRun_)
 			{
 				// remember changes and set pointer
 				std::streamoff change = fend_new - fend_;
@@ -85,15 +82,15 @@ public:
 	std::string GetChangesAsString(void)
 	{
 		std::stringstream ss;
-		for(char c : data_)
+		for (char c : data_)
 		{
-                    if (c > 0)
-			ss << c;
+			if (c > 0)
+				ss << c;
 		}
-                
-               
+
+
 #ifdef _DEBUG                
-                std::cout << "Tail::GetChangesAsString DEBUG: \'" << ss.str() << "\'" << std::endl;
+		std::cout << "Tail::GetChangesAsString DEBUG: \'" << ss.str() << "\'" << std::endl;
 #endif   
 		return ss.str();
 	}
@@ -103,7 +100,6 @@ private:
 	std::string fname_;
 	std::vector<char> data_;
 	std::ios::streampos fend_;
-	
 
 };
 
