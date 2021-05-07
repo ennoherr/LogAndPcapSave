@@ -13,7 +13,7 @@
 
 
 settings::settings(void)
-	: version("1.1.0.0 - Build 2021-04-27")
+	: version("1.1.0.2 - Build 2021-05-04")
 	, fname("out")
 	, find("")
 	, logfile("")
@@ -135,7 +135,7 @@ int settings::processCmdLineArgs(TCHAR** argv, int argc)
 			std::cout << std::endl;
 
 			// we can exit the loop here
-			break;
+			return 2;
 		}
 
 	} // end - for loop
@@ -215,12 +215,15 @@ void settings::printNicList(void)
 {
 	std::vector<std::string> adapters;
 	NetCapture nc;
+	nc.initInterfaces();
 	nc.getInterfaces(adapters);
 
 	for (unsigned i = 0; i < adapters.size(); i++)
 	{
 		std::cout << std::to_string(i + 1) << " - " << adapters.at(i) << std::endl;
 	}
+
+	nc.cleanup();
 }
 
 int settings::getPcapMax(void)
